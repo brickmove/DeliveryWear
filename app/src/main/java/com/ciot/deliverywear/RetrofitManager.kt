@@ -1,0 +1,263 @@
+package com.ciot.deliverywear
+
+import android.os.Handler
+import android.os.Looper
+import android.text.TextUtils
+import android.util.Log
+import com.ciot.deliverywear.constant.HttpConstant
+import com.ciot.deliverywear.network.TokenInterceptor
+import com.ciot.deliverywear.network.WuhanApiService
+import com.ciot.deliverywear.utils.ContextUtil
+import io.reactivex.Observer
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import me.jessyan.retrofiturlmanager.RetrofitUrlManager
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import org.json.JSONObject
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import java.net.Proxy
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
+import retrofit2.converter.gson.GsonConverterFactory
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+
+// 服务器网络请求管理类
+class RetrofitManager {
+    private val TAG = "NETWORK_TAG"
+    private var mWuHanBaseUrl: String? = null
+    private var mCompositeDisposable: CompositeDisposable? = null
+
+    /*请求服务器超时时间*/
+    private val SERVER_TIMEOUT: Long = 5000
+    private var mWuhanApiService: WuhanApiService? = null
+    private var mWuHanUserName: AtomicReference<String> = AtomicReference()
+    private var mWuHanPassWord: AtomicReference<String> = AtomicReference()
+    private var mToken: AtomicReference<String> = AtomicReference()
+    private var mUserId: AtomicReference<String> = AtomicReference()
+    /**
+     * token无效时间(单位:毫秒 Unix时间戳)
+     * 到达此时间后无效
+     */
+    private var mTokenInvalidTime: AtomicReference<Long> = AtomicReference(0)
+    //初始化状态：0表示获取到IP;1表示激活成功获取到账户和密码;2表示登录成功;3表示获取到token;4表示获取到projectId等属性信息
+    var initState = HttpConstant.INIT_STATE_IDLE
+
+    private object RetrofitHelperHolder {
+        val holder = RetrofitManager()
+    }
+
+    companion object {
+        val instance: RetrofitManager
+            get() = RetrofitHelperHolder.holder
+    }
+
+    fun getWuHanApiService(): WuhanApiService {
+        if (mWuhanApiService == null) {
+            val wuHanBaseUrl = HttpConstant.DEFAULT_SERVICE_URL
+            Log.d(TAG, "getWuHanBaseUrl=$wuHanBaseUrl")
+            mWuhanApiService = Retrofit.Builder()
+                .baseUrl(wuHanBaseUrl)
+                .client(getOkHttpClient(TAG, true))
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build()
+                .create(WuhanApiService::class.java)
+            Log.d(TAG, "getWuHanApiService")
+        }
+        return mWuhanApiService!!
+    }
+
+    private fun getOkHttpClient(): OkHttpClient {
+        return getOkHttpClient(TAG)
+    }
+
+    private fun getOkHttpClient(tag: String, reLoginWhenTokenInvalid: Boolean = false): OkHttpClient {
+        val builder = RetrofitUrlManager.getInstance().with(OkHttpClient().newBuilder())
+        //设置 请求的缓存的大小跟位置
+        try {
+            builder.run {
+                if (reLoginWhenTokenInvalid) {
+                    addInterceptor(TokenInterceptor {
+                        login()
+                    })
+                }
+                connectTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+                readTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+                writeTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+                retryOnConnectionFailure(true) // 错误重连
+                proxy(Proxy.NO_PROXY) //防止被抓包，提升安全性
+                // cookieJar(CookieManager())
+                Log.d(TAG, "getOkHttpClient")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "getOkHttpClient Exception：$e")
+        }
+        return builder.build()
+    }
+
+    /**
+     * 重新登录
+     */
+    fun reLogin() {
+        val invalidTime = mTokenInvalidTime.get()
+        val nowTime = System.currentTimeMillis() / 1000
+        if (invalidTime > 0) {
+            if (nowTime + 60 > invalidTime) {
+                // 距离Token无效少于1分钟时，重新登录
+                login()
+            }
+        }
+    }
+
+    /**
+     * 重新登录失败次数
+     */
+    @Volatile
+    private var mReLoginFailTimes = 0
+
+    /**
+     * 上一次重新登录时间
+     */
+    @Volatile
+    private var mLastReLoginTime = 0
+
+    /**
+     * 登录
+     */
+    private fun login() {
+        // 间隔时长
+        val intervalTime = when (mReLoginFailTimes) {
+            0 -> 10
+            1 -> 20
+            else -> 40
+        }
+        // 转换成秒
+        val nowTime = (System.currentTimeMillis() / 1000).toInt()
+        if (nowTime - mLastReLoginTime <= intervalTime) {
+            Log.w(TAG,"Token过期，重新登录太频繁")
+            return
+        }
+        getWuHanApiService().login(getUserRequestBody(true))
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<ResponseBody> {
+                override fun onSubscribe(d: Disposable) {
+                    addSubscription(d)
+                }
+
+                override fun onNext(body: ResponseBody) {
+                    Log.w(TAG,"重新登录success")
+                    mReLoginFailTimes = 0
+                    parseLoginResponseBody(body)
+                }
+
+                override fun onError(e: Throwable) {
+                    val failTimes = mReLoginFailTimes + 1
+                    mReLoginFailTimes = failTimes
+                    Log.w(TAG,"重新登录失败 $failTimes onError: ${e.message}")
+                }
+
+                override fun onComplete() {
+                }
+            })
+    }
+
+    private fun getUserRequestBody(isGetUserAndPwm: Boolean): RequestBody {
+        if (initState == HttpConstant.INIT_STATE_GET_IP && isGetUserAndPwm) {
+            Log.d(TAG, "login condition is get")
+        }
+        //这里条件(账户名和密码)都满足后才开始登录
+        initState = HttpConstant.INIT_STATE_GET_USER
+        val root = JSONObject()
+        root.put("username", getWuHanUserName())
+        root.put("password", getWuHanPassWord())
+
+        val requestBody: RequestBody = RequestBody.create("application/json; charset=utf-8".toMediaTypeOrNull(), root.toString())
+        Log.d(TAG, "ready login wuhan Server")
+        return requestBody
+    }
+
+    private fun parseLoginResponseBody(loginResponseBody: ResponseBody): Boolean {
+        var token = ""
+        if (loginResponseBody != null) {
+            //登录成功后拿到token,并通过这个token获取机器人的相关属性信息,如所属项目、区域等
+            try {
+                val json = String(loginResponseBody.bytes())
+                Log.d(TAG, "requestWuHanLogin result:$json")
+                val obj = JSONObject(json)
+                token = obj.getString("token")
+                val userId = obj.getString("user")
+                setUserId(userId)
+                // 设置token过期时长
+                val timeOut = obj.getLong("timeout") * 1000
+                val createTime = obj.getLong("createtime")
+                setTokenInvalidTime(timeOut + createTime)
+            } catch (e: Exception) {
+                Log.d(TAG, "parse WuHanLogin Exception:$e")
+            }
+            initState = HttpConstant.INIT_STATE_LONGIN_GET_TOKEN
+            if (TextUtils.isEmpty(token)) {
+                Log.d(TAG, "get Token is Empty")
+                return false
+            }
+            setToken(token)
+            Log.w(TAG, "requestWuHanLogin getToken:${getToken()}")
+            return true
+        } else {
+            Log.i(TAG, "requestWuHanLogin loginResponseBody is null")
+            return false
+        }
+    }
+
+    var mHandler = Handler(Looper.getMainLooper())
+    /**
+     * token无效时间
+     */
+    private fun setTokenInvalidTime(tokenInvalidTime: Long) {
+        mTokenInvalidTime.set(tokenInvalidTime)
+    }
+
+    fun setWuHanUserName(userName: String?) {
+        mWuHanUserName.set(userName)
+    }
+
+    fun getWuHanUserName(): String? {
+        return mWuHanUserName.get()
+    }
+
+    fun setWuHanPassWord(passWord: String?) {
+        mWuHanPassWord.set(passWord)
+    }
+
+    fun getWuHanPassWord(): String? {
+        return mWuHanPassWord.get()
+    }
+
+    fun setToken(token: String) {
+        this.mToken.set(token)
+    }
+
+    fun getToken(): String? {
+        return mToken.get()
+    }
+
+    fun setUserId(userId: String) {
+        this.mUserId.set(userId)
+    }
+
+    fun getUserId(): String? {
+        return mUserId.get()
+    }
+
+    fun addSubscription(disposable: Disposable?) {
+        if (mCompositeDisposable == null) {
+            mCompositeDisposable = CompositeDisposable()
+        }
+        disposable?.let { mCompositeDisposable?.add(it) }
+    }
+}
