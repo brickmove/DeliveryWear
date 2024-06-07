@@ -1,0 +1,70 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <TextView
+        android:id="@+id/timeTextView"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center_vertical|end"
+        android:textAlignment="viewEnd"
+        android:textColor="@color/white"
+        android:text="@string/time"
+        android:textSize="16sp" />
+
+    <ImageView
+        android:id="@+id/welcome_smile"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginStart="92dp"
+        android:layout_marginTop="40dp"
+        android:src="@mipmap/welcome_smile"/>
+
+    <TextView
+        android:id="@+id/welcome_words"
+        android:layout_width="181.82dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="29dp"
+        android:layout_marginTop="104dp"
+        android:gravity="center"
+        android:text="@string/Welcome"
+        android:textColor="#FFB500"
+        android:textSize="20sp" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/enter_password"
+        android:layout_width="192dp"
+        android:layout_height="88dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="168dp"
+        app:cardBackgroundColor="@color/yellow"
+        app:cardCornerRadius="19.39dp">
+
+        <ImageView
+            android:id="@+id/key_image"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginStart="72dp"
+            android:layout_marginTop="5dp"
+            android:src="@mipmap/key_image" />
+
+        <TextView
+            android:id="@+id/enter_pwd"
+            android:layout_width="152dp"
+            android:layout_height="23dp"
+            android:text="@string/enter_pwd"
+            android:textAppearance="@style/enter_pwd"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="53dp"
+            android:gravity="center_horizontal|top"/>
+    </androidx.cardview.widget.CardView>
+
+
+</RelativeLayout>

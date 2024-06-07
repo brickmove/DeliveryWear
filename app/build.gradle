@@ -7,6 +7,15 @@ ext {
     retrofitUrlManagerVersion = '1.4.0'
 }
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
+static def getMyVersionCode() {
+    //versionCode规则,年月日+当天第几次打包（+1表示第一次打包）;如2020年11月12日第一次打包versionCode=2011121
+    return Integer.parseInt(new Date().format("yyMMdd", TimeZone.getTimeZone("UTC"))) * 10 + 1
+}
+
 android {
     namespace 'com.ciot.deliverywear'
     compileSdk 34
@@ -16,7 +25,7 @@ android {
         minSdk 27
         targetSdk 33
         versionCode 1
-        versionName "1.0"
+        versionName "V1.0.1_${getMyVersionCode()}_beta"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -62,6 +71,7 @@ dependencies {
     /* 新增 */
     implementation 'com.blankj:utilcode:1.30.7'
     implementation "me.jessyan:retrofit-url-manager:1.4.0"
+    implementation 'me.jessyan:autosize:1.2.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
     implementation "io.reactivex.rxjava2:rxandroid:2.1.1"
     implementation 'com.google.code.gson:gson:2.11.0'
@@ -70,6 +80,7 @@ dependencies {
     implementation "androidx.fragment:fragment-ktx:1.7.1"
     implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.11.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
     /* 新增 */
     androidTestImplementation platform('androidx.compose:compose-bom:2023.03.00')
     testImplementation 'junit:junit:4.13.2'

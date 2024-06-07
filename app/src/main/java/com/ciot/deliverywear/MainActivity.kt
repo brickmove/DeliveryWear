@@ -1,46 +1,68 @@
 package com.ciot.deliverywear
 
 import android.os.Bundle
+import android.os.Handler
+import android.util.Log
+import android.view.View
+import android.view.WindowManager
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.ciot.deliverywear.ui.theme.DeliveryWearTheme
+import androidx.cardview.widget.CardView
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), View.OnClickListener {
+    private var timeTextView: TextView? = null
+    private var welcomeSmile: ImageView? = null
+    private var welcomeWords: TextView? = null
+    private var enterPassword: CardView? = null
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "MainActivity onCreate start")
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        )
+        initView()
         super.onCreate(savedInstanceState)
-        setContent {
-            DeliveryWearTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
-                }
+        setContentView(R.layout.fragment_welcome)
+        getCurTime()
+    }
+
+    private fun initView() {
+        timeTextView = findViewById(R.id.timeTextView)
+        welcomeSmile = findViewById(R.id.welcome_smile)
+        welcomeWords = findViewById(R.id.welcome_words)
+        enterPassword = findViewById(R.id.enter_password)
+    }
+    override fun onClick(view: View?) {
+        Log.d(TAG, "onClick: " + view?.id)
+        when (view?.id) {
+            R.id.enter_password -> {
+                welcomeSmile?.visibility = View.GONE
+                welcomeWords?.visibility = View.GONE
+                enterPassword?.visibility = View.GONE
+
+
             }
         }
     }
-}
+    private fun getCurTime() {
+        val handler = Handler()
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+        val updateTimeRunnable = object : Runnable {
+            override fun run() {
+                val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    DeliveryWearTheme {
-        Greeting("Android")
+                timeTextView?.text = dateFormat.format(Date())
+                handler.postDelayed(this, 1000) // 每秒更新一次时间
+            }
+        }
+        handler.post(updateTimeRunnable)
     }
 }
