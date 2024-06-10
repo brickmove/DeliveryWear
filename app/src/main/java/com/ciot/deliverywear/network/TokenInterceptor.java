@@ -2,8 +2,6 @@ package com.ciot.deliverywear.network;
 
 import android.text.TextUtils;
 
-import com.ciot.deliverywear.RetrofitManager;
-
 import java.io.IOException;
 
 import okhttp3.Interceptor;

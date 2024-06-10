@@ -1,4 +1,4 @@
-package com.ciot.deliverywear.ui.fragment
+package com.ciot.deliverywear.ui.base
 
 import android.os.Bundle
 import android.view.LayoutInflater

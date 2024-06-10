@@ -13,4 +13,8 @@ public class ContextUtil {
     public static void setContext(@NonNull Context context) {
         sContext = context.getApplicationContext();
     }
+
+    public static void clearContext() {
+        sContext = null;
+    }
 }

@@ -1,13 +1,10 @@
-package com.ciot.deliverywear
+package com.ciot.deliverywear.network
 
 import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
 import android.util.Log
 import com.ciot.deliverywear.constant.HttpConstant
-import com.ciot.deliverywear.network.TokenInterceptor
-import com.ciot.deliverywear.network.WuhanApiService
-import com.ciot.deliverywear.utils.ContextUtil
 import io.reactivex.Observer
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
