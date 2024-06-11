@@ -1,5 +1,6 @@
 package com.ciot.deliverywear.network
 
+import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
@@ -67,6 +68,37 @@ class RetrofitManager {
             Log.d(TAG, "getWuHanApiService")
         }
         return mWuhanApiService!!
+    }
+
+    data class LogInRequestBody(
+        val username: String,
+        val password: String
+    )
+    @SuppressLint("All")
+    fun toLogin() {
+        getWuHanApiService().login(getUserRequestBody(true))
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<ResponseBody> {
+                override fun onSubscribe(d: Disposable) {
+                    addSubscription(d)
+                }
+
+                override fun onNext(body: ResponseBody) {
+                    Log.w(TAG,"重新登录success")
+                    mReLoginFailTimes = 0
+                    parseLoginResponseBody(body)
+                }
+
+                override fun onError(e: Throwable) {
+                    val failTimes = mReLoginFailTimes + 1
+                    mReLoginFailTimes = failTimes
+                    Log.w(TAG,"重新登录失败 $failTimes onError: ${e.message}")
+                }
+
+                override fun onComplete() {
+                }
+            })
     }
 
     private fun getOkHttpClient(): OkHttpClient {
@@ -139,29 +171,7 @@ class RetrofitManager {
             Log.w(TAG,"Token过期，重新登录太频繁")
             return
         }
-        getWuHanApiService().login(getUserRequestBody(true))
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : Observer<ResponseBody> {
-                override fun onSubscribe(d: Disposable) {
-                    addSubscription(d)
-                }
-
-                override fun onNext(body: ResponseBody) {
-                    Log.w(TAG,"重新登录success")
-                    mReLoginFailTimes = 0
-                    parseLoginResponseBody(body)
-                }
-
-                override fun onError(e: Throwable) {
-                    val failTimes = mReLoginFailTimes + 1
-                    mReLoginFailTimes = failTimes
-                    Log.w(TAG,"重新登录失败 $failTimes onError: ${e.message}")
-                }
-
-                override fun onComplete() {
-                }
-            })
+        toLogin()
     }
 
     private fun getUserRequestBody(isGetUserAndPwm: Boolean): RequestBody {
@@ -175,40 +185,35 @@ class RetrofitManager {
         root.put("password", getWuHanPassWord())
 
         val requestBody: RequestBody = RequestBody.create("application/json; charset=utf-8".toMediaTypeOrNull(), root.toString())
-        Log.d(TAG, "ready login wuhan Server")
+        Log.d(TAG, "ready login wuhan Server, requestBody: $requestBody")
         return requestBody
     }
 
     private fun parseLoginResponseBody(loginResponseBody: ResponseBody): Boolean {
         var token = ""
-        if (loginResponseBody != null) {
-            //登录成功后拿到token,并通过这个token获取机器人的相关属性信息,如所属项目、区域等
-            try {
-                val json = String(loginResponseBody.bytes())
-                Log.d(TAG, "requestWuHanLogin result:$json")
-                val obj = JSONObject(json)
-                token = obj.getString("token")
-                val userId = obj.getString("user")
-                setUserId(userId)
-                // 设置token过期时长
-                val timeOut = obj.getLong("timeout") * 1000
-                val createTime = obj.getLong("createtime")
-                setTokenInvalidTime(timeOut + createTime)
-            } catch (e: Exception) {
-                Log.d(TAG, "parse WuHanLogin Exception:$e")
-            }
-            initState = HttpConstant.INIT_STATE_LONGIN_GET_TOKEN
-            if (TextUtils.isEmpty(token)) {
-                Log.d(TAG, "get Token is Empty")
-                return false
-            }
-            setToken(token)
-            Log.w(TAG, "requestWuHanLogin getToken:${getToken()}")
-            return true
-        } else {
-            Log.i(TAG, "requestWuHanLogin loginResponseBody is null")
+        //登录成功后拿到token
+        try {
+            val json = String(loginResponseBody.bytes())
+            Log.d(TAG, "requestWuHanLogin result:$json")
+            val obj = JSONObject(json)
+            token = obj.getString("token")
+            val userId = obj.getString("user")
+            setUserId(userId)
+            // 设置token过期时长
+            val timeOut = obj.getLong("timeout") * 1000
+            val createTime = obj.getLong("createtime")
+            setTokenInvalidTime(timeOut + createTime)
+        } catch (e: Exception) {
+            Log.d(TAG, "parse WuHanLogin Exception:$e")
+        }
+        initState = HttpConstant.INIT_STATE_LONGIN_GET_TOKEN
+        if (TextUtils.isEmpty(token)) {
+            Log.d(TAG, "get Token is Empty")
             return false
         }
+        setToken(token)
+        Log.w(TAG, "requestWuHanLogin getToken:${getToken()}")
+        return true
     }
 
     var mHandler = Handler(Looper.getMainLooper())

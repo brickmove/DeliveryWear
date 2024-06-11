@@ -10,7 +10,9 @@ import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.cardview.widget.CardView
 import com.ciot.deliverywear.R
+import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.utils.ContextUtil
+import com.ciot.deliverywear.utils.MyDeviceUtils
 import com.ciot.deliverywear.utils.PrefManager
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -21,7 +23,7 @@ class MainActivity : ComponentActivity(), View.OnClickListener {
     private var welcomeSmile: ImageView? = null
     private var welcomeWords: TextView? = null
     private var enterPassword: CardView? = null
-
+    private val prefManager = PrefManager(this)
     // 连续点击次数
     val mCounts: Int = 8
     //连续点击有效时间
@@ -38,7 +40,6 @@ class MainActivity : ComponentActivity(), View.OnClickListener {
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         )
         super.onCreate(savedInstanceState)
-        val prefManager = PrefManager(this)
         if (prefManager.isFirstTimeLaunch) {
             setContentView(R.layout.fragment_welcome)
             prefManager.isFirstTimeLaunch = false
@@ -49,8 +50,20 @@ class MainActivity : ComponentActivity(), View.OnClickListener {
                 setContentView(R.layout.fragment_welcome)
             }
         }
+        initWatch()
         initView()
         getCurTime()
+    }
+
+    private fun initWatch() {
+        Log.d(TAG, "initWatch start")
+        val mac = MyDeviceUtils.getMacAddress()
+        RetrofitManager.instance.setWuHanUserName(mac)
+        val code = prefManager.bindKey
+        if (prefManager.isBound && code != null) {
+            RetrofitManager.instance.setWuHanPassWord(code)
+            RetrofitManager.instance.toLogin()
+        }
     }
 
     private fun initView() {
@@ -63,10 +76,15 @@ class MainActivity : ComponentActivity(), View.OnClickListener {
     override fun onClick(view: View?) {
         when (view?.id) {
             R.id.enter_password -> {
+                // 接口测试
+//                RetrofitManager.instance.setWuHanPassWord("40399636")
+//                RetrofitManager.instance.toLogin()
                 welcomeSmile?.visibility = View.GONE
                 welcomeWords?.visibility = View.GONE
                 enterPassword?.visibility = View.GONE
 
+            }
+            R.id.button_got_it -> {
 
             }
         }
