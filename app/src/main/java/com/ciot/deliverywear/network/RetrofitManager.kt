@@ -195,8 +195,9 @@ class RetrofitManager {
         try {
             val json = String(loginResponseBody.bytes())
             Log.d(TAG, "requestWuHanLogin result:$json")
-            val obj = JSONObject(json)
+            val obj = JSONObject(json).getJSONObject("data")
             token = obj.getString("token")
+            Log.d(TAG, "requestWuHanLogin token:$token")
             val userId = obj.getString("user")
             setUserId(userId)
             // 设置token过期时长
