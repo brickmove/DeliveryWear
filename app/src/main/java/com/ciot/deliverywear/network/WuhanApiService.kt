@@ -1,4 +1,6 @@
 package com.ciot.deliverywear.network
+import com.ciot.deliverywear.bean.NavPointResponse
+import com.ciot.deliverywear.bean.RobotInfoResponse
 import io.reactivex.Observable
 import me.jessyan.retrofiturlmanager.RetrofitUrlManager
 import okhttp3.RequestBody
@@ -11,4 +13,18 @@ interface WuhanApiService {
     @POST("/api/Users/codeLogin")
     fun login(@Body body: RequestBody): Observable<ResponseBody>
 
+    /*获取导航点*/
+    @Headers(RetrofitUrlManager.DOMAIN_NAME_HEADER + Api.DOMAIN_NAME_PROPERTY)
+    @GET("/api/Robots/ctrl/getNavigate")
+    fun getNavigationPoint(@Query("access_token") token: String?, @Query("id") robot: String?, @Query("map") map: String?): Observable<List<NavPointResponse>>
+
+    /*单点导航*/
+    @Headers(RetrofitUrlManager.DOMAIN_NAME_HEADER + Api.DOMAIN_NAME_PROPERTY)
+    @POST("/api/Robots/ctrl/singlePointNavigate")
+    fun singlePointNavigate(@Body body: RequestBody?, @Query("access_token") token: String?): Observable<ResponseBody>
+
+    /*根据项目id获取机器人列表*/
+    @Headers(RetrofitUrlManager.DOMAIN_NAME_HEADER + Api.DOMAIN_NAME_PROPERTY)
+    @GET("/api/Robots/findByProject")
+    fun findRobotByProject(@Query("access_token") token: String?, @Query("projectId") projectId: String?): Observable<List<RobotInfoResponse>>
 }

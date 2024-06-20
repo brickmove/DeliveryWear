@@ -1,6 +1,5 @@
 package com.ciot.deliverywear.ui.fragment
 import android.util.Log
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.ciot.deliverywear.constant.ConstantLogic
@@ -10,13 +9,13 @@ import com.ciot.deliverywear.ui.base.BaseFragment
 object FragmentFactory {
     private var mCacheFragment: MutableMap<Int, BaseFragment>? = HashMap()
     private var mCurrentFragmentType = -1
-    var isClearCache: Boolean = false
+    private var isClearCache: Boolean = false
 
-    fun creatFragment(fragmentType: Int): BaseFragment {
+    fun createFragment(fragmentType: Int): BaseFragment {
         var fragment: BaseFragment? = null
         Log.i(
             ConstantLogic.FRAGMENT,
-            "creatFragment:$fragmentType,last fragment is:$mCurrentFragmentType"
+            "createFragment:$fragmentType,last fragment is:$mCurrentFragmentType"
         )
         if (mCacheFragment!!.containsKey(fragmentType)) {
             fragment = mCacheFragment!![fragmentType]
@@ -27,6 +26,7 @@ object FragmentFactory {
         }
         when (fragmentType) {
             ConstantLogic.MSG_TYPE_WELCOME -> fragment = WelcomeFragment()
+            ConstantLogic.MSG_TYPE_LOGIN -> fragment = LoginFragment()
             else -> fragment = HomeFragment()
         }
         mCacheFragment!![fragmentType] = fragment
@@ -58,7 +58,7 @@ object FragmentFactory {
         Log.d(ConstantLogic.FRAGMENT, "Fragment release")
     }
 
-    fun changeFragment(manager: FragmentManager, container: ViewGroup, newFragment: Fragment) {
+    fun changeFragment(manager: FragmentManager, containerId: Int, newFragment: Fragment) {
         try {
             var isNew = true
             val transaction = manager.beginTransaction()
@@ -72,7 +72,7 @@ object FragmentFactory {
                 }
             }
             if (isNew) {
-                transaction.add(container.id, newFragment)
+                transaction.add(containerId, newFragment)
             }
             transaction.setCustomAnimations(R.anim.fragment_in, R.anim.fragment_out)
             transaction.commitNowAllowingStateLoss()

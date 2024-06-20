@@ -7,28 +7,32 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.fragment.app.Fragment
 import com.ciot.deliverywear.R
+import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.utils.ContextUtil
 import com.ciot.deliverywear.utils.MyDeviceUtils
 import com.ciot.deliverywear.utils.PrefManager
+import com.ciot.deliverywear.ui.base.BaseFragment
+import com.ciot.deliverywear.ui.fragment.FragmentFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class MainActivity : ComponentActivity(), View.OnClickListener {
+class MainActivity : AppCompatActivity() , View.OnClickListener {
     private var timeTextView: TextView? = null
+    private var timeStandby: TextView? = null
+    private var dateStandby: TextView? = null
     private var welcomeSmile: ImageView? = null
     private var welcomeWords: TextView? = null
     private var enterPassword: CardView? = null
+    private var deviceImgView: ImageView? = null
     private var prefManager: PrefManager? = null
-    // 连续点击次数
-    val mCounts: Int = 8
-    //连续点击有效时间
-    val mDuration: Long = 2 * 1000
-
+    private var currentfragment: BaseFragment? = null
+    private var showingFragment: Fragment? = null
     companion object {
         private const val TAG = "MainActivity"
     }
@@ -40,20 +44,16 @@ class MainActivity : ComponentActivity(), View.OnClickListener {
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         )
         super.onCreate(savedInstanceState)
-        prefManager = PrefManager(this)
-        if (prefManager!!.isFirstTimeLaunch) {
-            setContentView(R.layout.fragment_welcome)
-            prefManager!!.isFirstTimeLaunch = false
-        } else {
-            if (prefManager!!.isBound) {
-                setContentView(R.layout.fragment_home)
-            } else {
-                setContentView(R.layout.fragment_welcome)
-            }
-        }
+        setContentView(R.layout.fragment_standby)
         initWatch()
         initView()
         getCurTime()
+        initListener()
+    }
+
+    private fun initListener() {
+        enterPassword?.setOnClickListener(this)
+        deviceImgView?.setOnClickListener(this)
     }
 
     private fun initWatch() {
@@ -69,24 +69,38 @@ class MainActivity : ComponentActivity(), View.OnClickListener {
 
     private fun initView() {
         timeTextView = findViewById(R.id.timeTextView)
+        timeStandby = findViewById(R.id.standby_time)
+        dateStandby = findViewById(R.id.standby_date)
         welcomeSmile = findViewById(R.id.welcome_smile)
         welcomeWords = findViewById(R.id.welcome_words)
         enterPassword = findViewById(R.id.enter_password)
-        enterPassword?.setOnClickListener(this)
+        deviceImgView = findViewById(R.id.device_image)
+
+        prefManager = PrefManager(this)
+        if (prefManager!!.isFirstTimeLaunch) {
+            setContentView(R.layout.fragment_welcome)
+            prefManager!!.isFirstTimeLaunch = false
+        } else {
+            if (prefManager!!.isBound) {
+                setContentView(R.layout.fragment_home)
+            } else {
+                setContentView(R.layout.fragment_welcome)
+            }
+        }
     }
     override fun onClick(view: View?) {
         when (view?.id) {
             R.id.enter_password -> {
                 Log.d(TAG, "---enter_password---")
                 // 接口测试
-                RetrofitManager.instance.setWuHanPassWord("40399636")
-                RetrofitManager.instance.toLogin()
-//                welcomeSmile?.visibility = View.GONE
-//                welcomeWords?.visibility = View.GONE
-//                enterPassword?.visibility = View.GONE
-
+                //RetrofitManager.instance.setWuHanPassWord("40399636")
+                //RetrofitManager.instance.toLogin()
+                updateFragment(ConstantLogic.MSG_TYPE_LOGIN)
             }
             R.id.button_got_it -> {
+
+            }
+            R.id.device_image -> {
 
             }
         }
@@ -96,9 +110,11 @@ class MainActivity : ComponentActivity(), View.OnClickListener {
 
         val updateTimeRunnable = object : Runnable {
             override fun run() {
-                val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-                timeTextView?.text = dateFormat.format(Date())
-                //Log.d(TAG, "getCurTime: " + timeTextView?.text)
+                val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+                val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
+                timeTextView?.text = timeFormat.format(Date())
+                timeStandby?.text = timeFormat.format(Date())
+                dateStandby?.text = dateFormat.format(Date())
                 handler.postDelayed(this, 1000) // 每秒更新一次时间
             }
         }
@@ -108,5 +124,32 @@ class MainActivity : ComponentActivity(), View.OnClickListener {
     override fun onDestroy() {
         super.onDestroy()
         ContextUtil.clearContext()
+    }
+
+    private fun updateFragment(type: Int) {
+        getFragment(type)
+        changeFragment(type, currentfragment)
+    }
+
+    fun getCurrentFragment(): BaseFragment? {
+        return currentfragment
+    }
+
+    private fun getFragment(type: Int) {
+        currentfragment = FragmentFactory.createFragment(type)
+    }
+
+    private fun changeFragment(type: Int, newFragment: Fragment?) {
+        if (newFragment == null) {
+            Log.d(TAG, "changeFragment current fragment == null")
+            return
+        }
+
+        if (newFragment == showingFragment) {
+            Log.d(TAG, "changeFragment newFragment->${newFragment.javaClass.simpleName} == showingFragment>${showingFragment?.javaClass?.simpleName}")
+            return
+        }
+        FragmentFactory.changeFragment(supportFragmentManager, R.id.container_full, newFragment)
+        showingFragment = newFragment
     }
 }

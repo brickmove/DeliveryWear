@@ -5,7 +5,11 @@ import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
 import android.util.Log
+import com.ciot.deliverywear.bean.NavPointResponse
+import com.ciot.deliverywear.bean.RobotInfoResponse
 import com.ciot.deliverywear.constant.HttpConstant
+import com.google.gson.JsonObject
+import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -23,6 +27,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 // 服务器网络请求管理类
 class RetrofitManager {
@@ -37,6 +42,7 @@ class RetrofitManager {
     private var mWuHanPassWord: AtomicReference<String> = AtomicReference()
     private var mToken: AtomicReference<String> = AtomicReference()
     private var mUserId: AtomicReference<String> = AtomicReference()
+    private var mProjectId: AtomicReference<String> = AtomicReference()
     /**
      * token无效时间(单位:毫秒 Unix时间戳)
      * 到达此时间后无效
@@ -54,7 +60,7 @@ class RetrofitManager {
             get() = RetrofitHelperHolder.holder
     }
 
-    fun getWuHanApiService(): WuhanApiService {
+    private fun getWuHanApiService(): WuhanApiService {
         if (mWuhanApiService == null) {
             val wuHanBaseUrl = HttpConstant.DEFAULT_SERVICE_URL
             Log.d(TAG, "getWuHanBaseUrl=$wuHanBaseUrl")
@@ -70,10 +76,45 @@ class RetrofitManager {
         return mWuhanApiService!!
     }
 
-    data class LogInRequestBody(
-        val username: String,
-        val password: String
-    )
+    fun getRobots() : Observable<List<RobotInfoResponse>>?{
+        val token = getToken()
+        val project = getProject()
+        if (token.isNullOrEmpty() || project.isNullOrEmpty()) {
+            return null
+        }
+
+        return getWuHanApiService().findRobotByProject(token, project)
+    }
+
+    fun getNavPoint(robotId: String, map: String) : Observable<List<NavPointResponse>>?{
+        val token = getToken()
+        if (token.isNullOrEmpty()) {
+            return null
+        }
+        return getWuHanApiService().getNavigationPoint(token, robotId, map)
+    }
+
+    @SuppressLint("CheckResult")
+    fun navigatePoint(id: String, positionName: String, z: Int, flag: Int, mapinfo: String) {
+        val token = getToken()
+        if (token.isNullOrEmpty()) {
+            return
+        }
+        val jsonObject = JsonObject();
+        jsonObject.addProperty("id", id)
+        jsonObject.addProperty("positionName", positionName)
+        jsonObject.addProperty("z", z)
+        jsonObject.addProperty("flag", flag)
+        jsonObject.addProperty("mapinfo", mapinfo)
+        val body = jsonObject.toString()
+            .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        getWuHanApiService().singlePointNavigate(body, token)
+            .timeout(SERVER_TIMEOUT, TimeUnit.MILLISECONDS)
+            ?.subscribeOn(Schedulers.io())
+            ?.observeOn(AndroidSchedulers.mainThread())
+            ?.subscribe {}
+    }
+
     @SuppressLint("All")
     fun toLogin() {
         getWuHanApiService().login(getUserRequestBody(true))
@@ -191,6 +232,7 @@ class RetrofitManager {
 
     private fun parseLoginResponseBody(loginResponseBody: ResponseBody): Boolean {
         var token = ""
+        var projectId = ""
         //登录成功后拿到token
         try {
             val json = String(loginResponseBody.bytes())
@@ -198,6 +240,7 @@ class RetrofitManager {
             val obj = JSONObject(json).getJSONObject("data")
             token = obj.getString("token")
             Log.d(TAG, "requestWuHanLogin token:$token")
+            projectId = obj.getString("projectId")
             val userId = obj.getString("user")
             setUserId(userId)
             // 设置token过期时长
@@ -213,6 +256,7 @@ class RetrofitManager {
             return false
         }
         setToken(token)
+        setProject(projectId)
         Log.w(TAG, "requestWuHanLogin getToken:${getToken()}")
         return true
     }
@@ -223,6 +267,14 @@ class RetrofitManager {
      */
     private fun setTokenInvalidTime(tokenInvalidTime: Long) {
         mTokenInvalidTime.set(tokenInvalidTime)
+    }
+
+    private fun setProject(projectId: String?) {
+        mProjectId.set(projectId)
+    }
+
+    private fun getProject(): String? {
+        return mProjectId.get()
     }
 
     fun setWuHanUserName(userName: String?) {
@@ -237,19 +289,19 @@ class RetrofitManager {
         mWuHanPassWord.set(passWord)
     }
 
-    fun getWuHanPassWord(): String? {
+    private fun getWuHanPassWord(): String? {
         return mWuHanPassWord.get()
     }
 
-    fun setToken(token: String) {
+    private fun setToken(token: String) {
         this.mToken.set(token)
     }
 
-    fun getToken(): String? {
+    private fun getToken(): String? {
         return mToken.get()
     }
 
-    fun setUserId(userId: String) {
+    private fun setUserId(userId: String) {
         this.mUserId.set(userId)
     }
 

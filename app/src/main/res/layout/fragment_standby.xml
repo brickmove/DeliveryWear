@@ -1,0 +1,41 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/black"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/standby_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="52dp"
+        android:fontFamily="@font/lexend_extrabold"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:text="@string/time_standby"
+        android:textColor="@color/white"
+        android:textSize="56sp" />
+
+    <TextView
+        android:id="@+id/standby_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="112dp"
+        android:fontFamily="@font/lexend_medium"
+        android:gravity="center"
+        android:text="@string/date_standby"
+        android:textColor="@color/white_date"
+        android:textSize="20sp" />
+
+    <ImageView
+        android:id="@+id/device_image"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="84dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="177dp"
+        android:src="@mipmap/device_image"/>
+</RelativeLayout>

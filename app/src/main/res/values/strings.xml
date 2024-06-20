@@ -3,7 +3,8 @@
     <string name="Welcome">Welcome to RoboLink Watch</string>
     <string name="enter_pwd">Enter password</string>
     <string name="time">9:55</string>
-
+    <string name="time_standby">03:34</string>
+    <string name="date_standby">Oct 9, 2023</string>
     <string name="pls_enter_pwd">Please enter password</string>
     <string name="num0">0</string>
     <string name="num1">1</string>
