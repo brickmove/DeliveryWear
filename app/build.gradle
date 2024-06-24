@@ -23,7 +23,7 @@ android {
     defaultConfig {
         applicationId "com.ciot.deliverywear"
         minSdk 27
-        targetSdk 29
+        targetSdk 33
         versionCode 1
         versionName "V1.0.1_${getMyVersionCode()}_beta"
 

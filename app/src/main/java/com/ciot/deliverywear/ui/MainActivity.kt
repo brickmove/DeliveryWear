@@ -18,6 +18,7 @@ import com.ciot.deliverywear.utils.MyDeviceUtils
 import com.ciot.deliverywear.utils.PrefManager
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.fragment.FragmentFactory
+import com.ciot.deliverywear.ui.fragment.WelcomeFragment
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -28,6 +29,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     private var dateStandby: TextView? = null
     private var welcomeSmile: ImageView? = null
     private var welcomeWords: TextView? = null
+    private var returnView: ImageView? = null
     private var enterPassword: CardView? = null
     private var deviceImgView: ImageView? = null
     private var prefManager: PrefManager? = null
@@ -44,7 +46,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         )
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.fragment_standby)
+        setContentView(R.layout.fragment_welcome)
         initWatch()
         initView()
         getCurTime()
@@ -75,18 +77,19 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         welcomeWords = findViewById(R.id.welcome_words)
         enterPassword = findViewById(R.id.enter_password)
         deviceImgView = findViewById(R.id.device_image)
-
-        prefManager = PrefManager(this)
-        if (prefManager!!.isFirstTimeLaunch) {
-            setContentView(R.layout.fragment_welcome)
-            prefManager!!.isFirstTimeLaunch = false
-        } else {
-            if (prefManager!!.isBound) {
-                setContentView(R.layout.fragment_home)
-            } else {
-                setContentView(R.layout.fragment_welcome)
-            }
-        }
+        returnView = findViewById(R.id.return_img)
+        returnView?.visibility = View.INVISIBLE
+//        prefManager = PrefManager(this)
+//        if (prefManager!!.isFirstTimeLaunch && prefManager?.bindKey == null) {
+//            setContentView(R.layout.fragment_welcome)
+//            prefManager!!.isFirstTimeLaunch = false
+//        } else {
+//            if (prefManager!!.isBound) {
+//                setContentView(R.layout.fragment_home)
+//            } else {
+//                setContentView(R.layout.fragment_welcome)
+//            }
+//        }
     }
     override fun onClick(view: View?) {
         when (view?.id) {
@@ -101,7 +104,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
             }
             R.id.device_image -> {
-
+                updateFragment(ConstantLogic.MSG_TYPE_AREA)
             }
         }
     }

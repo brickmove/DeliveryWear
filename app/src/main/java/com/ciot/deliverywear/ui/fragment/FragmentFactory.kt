@@ -4,13 +4,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.R
+import com.ciot.deliverywear.ui.MainActivity
 import com.ciot.deliverywear.ui.base.BaseFragment
 
 object FragmentFactory {
     private var mCacheFragment: MutableMap<Int, BaseFragment>? = HashMap()
     private var mCurrentFragmentType = -1
     private var isClearCache: Boolean = false
-
+    private var tag = "FragmentFactory"
     fun createFragment(fragmentType: Int): BaseFragment {
         var fragment: BaseFragment? = null
         Log.i(
@@ -24,10 +25,10 @@ object FragmentFactory {
                 return fragment
             }
         }
-        when (fragmentType) {
-            ConstantLogic.MSG_TYPE_WELCOME -> fragment = WelcomeFragment()
-            ConstantLogic.MSG_TYPE_LOGIN -> fragment = LoginFragment()
-            else -> fragment = HomeFragment()
+        fragment = when (fragmentType) {
+            ConstantLogic.MSG_TYPE_WELCOME -> WelcomeFragment()
+            ConstantLogic.MSG_TYPE_LOGIN -> LoginFragment()
+            else -> HomeFragment()
         }
         mCacheFragment!![fragmentType] = fragment
         mCurrentFragmentType = fragmentType
@@ -59,6 +60,7 @@ object FragmentFactory {
     }
 
     fun changeFragment(manager: FragmentManager, containerId: Int, newFragment: Fragment) {
+        Log.d(tag, "changeFragment>>>>>>>>")
         try {
             var isNew = true
             val transaction = manager.beginTransaction()
@@ -77,8 +79,8 @@ object FragmentFactory {
             transaction.setCustomAnimations(R.anim.fragment_in, R.anim.fragment_out)
             transaction.commitNowAllowingStateLoss()
 
-        } catch (_: Exception) {
-
+        } catch (e: Exception) {
+            Log.d(tag, "changeFragment err: ", e)
         }
     }
 }

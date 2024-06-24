@@ -6,8 +6,8 @@ import android.util.Log
 
 // 存储绑定信息
 class PrefManager(context: Context) {
-    private val pref: SharedPreferences
-    private val editor: SharedPreferences.Editor
+    private val pref: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    private val editor: SharedPreferences.Editor = pref.edit()
 
     companion object {
         private const val BIND_KEY = "bindKey"
@@ -16,11 +16,6 @@ class PrefManager(context: Context) {
         private const val IS_FIRST_TIME_LAUNCH = "isFirstTimeLaunch"
         private const val TAG = "PrefManager"
         private const val MAX_RETRIES = 3
-    }
-
-    init {
-        pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        editor = pref.edit()
     }
 
     var isBound: Boolean
