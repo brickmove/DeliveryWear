@@ -1,6 +1,10 @@
 package com.ciot.deliverywear.bean
 
 class RobotInfoResponse {
+    // 机器人账户
+    var account: String? = null
+    var user: String? = null
+
     // 设备id
     var id: String? = null
 

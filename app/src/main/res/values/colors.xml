@@ -14,4 +14,7 @@
     <color name="dark_gray">#3A3A3A</color>
     <color name="default_num">#26FFFFFF</color>
     <color name="default_got_it">#1EFFFFFF</color>
+    <color name="robot_card_bc">#26FFFFFF</color>
+    <color name="default_green">#07E4AF</color>
+    <color name="default_summon">#030303</color>
 </resources>

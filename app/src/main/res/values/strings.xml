@@ -6,6 +6,10 @@
     <string name="time_standby">03:34</string>
     <string name="date_standby">Oct 9, 2023</string>
     <string name="pls_enter_pwd">Please enter password</string>
+    <string name="my_robot">My Robot</string>
+    <string name="robot_id">YH12345667787979786755645442</string>
+    <string name="robot_battery">60%</string>
+    <string name="robot_summon">SUMMON</string>
     <string name="num0">0</string>
     <string name="num1">1</string>
     <string name="num2">2</string>

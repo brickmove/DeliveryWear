@@ -5,7 +5,10 @@ import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
 import android.util.Log
+import com.blankj.utilcode.util.GsonUtils
+import com.ciot.deliverywear.bean.NavPointData
 import com.ciot.deliverywear.bean.NavPointResponse
+import com.ciot.deliverywear.bean.RobotAllResponse
 import com.ciot.deliverywear.bean.RobotInfoResponse
 import com.ciot.deliverywear.constant.HttpConstant
 import com.google.gson.JsonObject
@@ -28,6 +31,7 @@ import java.util.concurrent.atomic.AtomicReference
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.jetbrains.annotations.NotNull
 
 // 服务器网络请求管理类
 class RetrofitManager {
@@ -43,6 +47,8 @@ class RetrofitManager {
     private var mToken: AtomicReference<String> = AtomicReference()
     private var mUserId: AtomicReference<String> = AtomicReference()
     private var mProjectId: AtomicReference<String> = AtomicReference()
+    @Volatile
+    private var mRobotId: MutableList<String>? = mutableListOf()
     /**
      * token无效时间(单位:毫秒 Unix时间戳)
      * 到达此时间后无效
@@ -76,22 +82,76 @@ class RetrofitManager {
         return mWuhanApiService!!
     }
 
-    fun getRobots() : Observable<List<RobotInfoResponse>>?{
+    fun getRobots() {
         val token = getToken()
         val project = getProject()
         if (token.isNullOrEmpty() || project.isNullOrEmpty()) {
-            return null
+            Log.e(TAG, "param err--->token: $token, project: $project")
+            return
         }
+        val start ="0"
+        val limit ="100"
+        getWuHanApiService().findRobotByProject(token, project, start, limit)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object:Observer<RobotAllResponse>{
+                override fun onSubscribe(d: Disposable) {
+                    addSubscription(d)
+                }
 
-        return getWuHanApiService().findRobotByProject(token, project)
+                override fun onNext(body: RobotAllResponse) {
+                    Log.d(TAG, "RobotAllResponse: " + GsonUtils.toJson(body))
+                    parseRobotAllResponseBody(body)
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.w(TAG,"onError: ${e.message}")
+                }
+
+                override fun onComplete() {
+                }
+            })
     }
 
-    fun getNavPoint(robotId: String, map: String) : Observable<List<NavPointResponse>>?{
-        val token = getToken()
-        if (token.isNullOrEmpty()) {
-            return null
+    private fun parseRobotAllResponseBody(body: RobotAllResponse) {
+        val res: RobotAllResponse = body
+        val total: Int? = res.total
+        val robotInfo: List<RobotInfoResponse>? = res.datas
+        if (total == null || total == 0 || robotInfo.isNullOrEmpty()) {
+            return
         }
-        return getWuHanApiService().getNavigationPoint(token, robotId, map)
+        mRobotId = mutableListOf()
+        robotInfo.map {
+            it.id?.let { it1 -> mRobotId?.add(it1) }
+        }
+        Log.d(TAG, "parseRobotAllResponseBody robot list: " + GsonUtils.toJson(mRobotId))
+    }
+
+    fun getNavPoint(robotId: String, map: String) {
+        val token = getToken()
+        if (token.isNullOrEmpty() || robotId.isEmpty()) {
+            return
+        }
+        getWuHanApiService().getNavigationPoint(token, robotId, map)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object:Observer <List<NavPointResponse>>{
+                override fun onSubscribe(d: Disposable) {
+                    addSubscription(d)
+                }
+
+                override fun onNext(body: List<NavPointResponse>) {
+                    Log.d(TAG, "NavPointResponse: " + GsonUtils.toJson(body))
+                    //parseRobotAllResponseBody(body)
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.w(TAG,"onError: ${e.message}")
+                }
+
+                override fun onComplete() {
+                }
+            })
     }
 
     @SuppressLint("CheckResult")
@@ -275,6 +335,20 @@ class RetrofitManager {
 
     private fun getProject(): String? {
         return mProjectId.get()
+    }
+
+    fun getRobotList(): MutableList<String>? {
+        return mRobotId
+    }
+
+    fun setRobotList(robotId: List<String>) {
+        //设备id
+        Log.d(TAG, "RetrofitManager setRobotId=$robotId")
+        if (robotId.isNotEmpty()) {
+            Log.e(TAG, "RetrofitManager setRobotId is empty")
+            return
+        }
+        mRobotId?.addAll(robotId)
     }
 
     fun setWuHanUserName(userName: String?) {

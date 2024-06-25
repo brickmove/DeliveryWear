@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     private var welcomeSmile: ImageView? = null
     private var welcomeWords: TextView? = null
     private var returnView: ImageView? = null
+    private var myRobotText: TextView? = null
     private var enterPassword: CardView? = null
     private var deviceImgView: ImageView? = null
     private var prefManager: PrefManager? = null
@@ -46,7 +47,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         )
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.fragment_welcome)
+        setContentView(R.layout.fragment_home)
         initWatch()
         initView()
         getCurTime()
@@ -62,11 +63,15 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         Log.d(TAG, "initWatch start")
         val mac = MyDeviceUtils.getMacAddress()
         RetrofitManager.instance.setWuHanUserName(mac)
-        val code = prefManager?.bindKey
-        if (prefManager?.isBound == true && code != null) {
-            RetrofitManager.instance.setWuHanPassWord(code)
-            RetrofitManager.instance.toLogin()
-        }
+        // 接口测试
+        RetrofitManager.instance.setWuHanPassWord("17923345")
+        //RetrofitManager.instance.setWuHanPassWord("40399636")
+        RetrofitManager.instance.toLogin()
+//        val code = prefManager?.bindKey
+//        if (prefManager?.isBound == true && code != null) {
+//            RetrofitManager.instance.setWuHanPassWord(code)
+//            RetrofitManager.instance.toLogin()
+//        }
     }
 
     private fun initView() {
@@ -78,7 +83,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         enterPassword = findViewById(R.id.enter_password)
         deviceImgView = findViewById(R.id.device_image)
         returnView = findViewById(R.id.return_img)
+        myRobotText = findViewById(R.id.my_robot)
         returnView?.visibility = View.INVISIBLE
+        myRobotText?.visibility = View.VISIBLE
 //        prefManager = PrefManager(this)
 //        if (prefManager!!.isFirstTimeLaunch && prefManager?.bindKey == null) {
 //            setContentView(R.layout.fragment_welcome)
@@ -95,10 +102,8 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         when (view?.id) {
             R.id.enter_password -> {
                 Log.d(TAG, "---enter_password---")
-                // 接口测试
-                //RetrofitManager.instance.setWuHanPassWord("40399636")
-                //RetrofitManager.instance.toLogin()
-                updateFragment(ConstantLogic.MSG_TYPE_LOGIN)
+                //updateFragment(ConstantLogic.MSG_TYPE_LOGIN)
+                RetrofitManager.instance.getRobots()
             }
             R.id.button_got_it -> {
 
