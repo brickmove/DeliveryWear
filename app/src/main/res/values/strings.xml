@@ -9,7 +9,8 @@
     <string name="my_robot">My Robot</string>
     <string name="robot_id">YH12345667787979786755645442</string>
     <string name="robot_battery">60%</string>
-    <string name="robot_summon">SUMMON</string>
+    <string name="summon">SUMMON</string>
+    <string name="point_name">A101</string>
     <string name="num0">0</string>
     <string name="num1">1</string>
     <string name="num2">2</string>

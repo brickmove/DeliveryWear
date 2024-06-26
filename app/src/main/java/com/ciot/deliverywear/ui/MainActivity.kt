@@ -10,15 +10,17 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
 import com.ciot.deliverywear.R
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.network.RetrofitManager
+import com.ciot.deliverywear.ui.adapter.PointCardAdapter
 import com.ciot.deliverywear.utils.ContextUtil
 import com.ciot.deliverywear.utils.MyDeviceUtils
 import com.ciot.deliverywear.utils.PrefManager
 import com.ciot.deliverywear.ui.base.BaseFragment
+import com.ciot.deliverywear.ui.custom.PointCardDecoration
 import com.ciot.deliverywear.ui.fragment.FragmentFactory
-import com.ciot.deliverywear.ui.fragment.WelcomeFragment
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -36,6 +38,8 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     private var prefManager: PrefManager? = null
     private var currentfragment: BaseFragment? = null
     private var showingFragment: Fragment? = null
+    private var recyclerView: RecyclerView? = null
+    private var adapter: PointCardAdapter? = null
     companion object {
         private const val TAG = "MainActivity"
     }
@@ -46,12 +50,22 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
         )
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN
+        )
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.fragment_home)
+        setContentView(R.layout.fragment_point)
         initWatch()
         initView()
         getCurTime()
         initListener()
+        recyclerView = findViewById(R.id.point_list_view)
+        val points = listOf("A101", "A102", "A103", "A104", "A105")
+        adapter = PointCardAdapter(this, points)
+        recyclerView?.adapter = adapter
+        val spaceItemDecoration = PointCardDecoration(8, 16)
+        recyclerView?.addItemDecoration(spaceItemDecoration)
     }
 
     private fun initListener() {
@@ -113,6 +127,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             }
         }
     }
+
     private fun getCurTime() {
         val handler = Handler()
 

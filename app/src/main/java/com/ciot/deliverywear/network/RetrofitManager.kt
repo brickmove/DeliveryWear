@@ -169,10 +169,30 @@ class RetrofitManager {
         val body = jsonObject.toString()
             .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
         getWuHanApiService().singlePointNavigate(body, token)
-            .timeout(SERVER_TIMEOUT, TimeUnit.MILLISECONDS)
-            ?.subscribeOn(Schedulers.io())
-            ?.observeOn(AndroidSchedulers.mainThread())
-            ?.subscribe {}
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object:Observer <ResponseBody>{
+                override fun onSubscribe(d: Disposable) {
+                    addSubscription(d)
+                }
+
+                override fun onNext(body: ResponseBody) {
+                    try {
+                        val json = String(body.bytes())
+                        val res = JSONObject(json).getJSONObject("result")
+                        Log.d(TAG, "navigatePoint result:$res")
+                    } catch (e: Exception) {
+                        Log.d(TAG, "parse navigatePoint Exception:$e")
+                    }
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.w(TAG,"onError: ${e.message}")
+                }
+
+                override fun onComplete() {
+                }
+            })
     }
 
     @SuppressLint("All")
