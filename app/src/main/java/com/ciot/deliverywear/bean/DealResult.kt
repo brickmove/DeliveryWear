@@ -5,7 +5,8 @@ package com.ciot.deliverywear.bean
  * Description:
  * Encoding: utf-8
  */
-class DealReault {
+class DealResult {
+    var type: Int = 0
 
     override fun toString(): String {
         return "DealResult()"

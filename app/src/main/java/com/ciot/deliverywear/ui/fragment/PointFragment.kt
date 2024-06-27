@@ -10,9 +10,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.ciot.deliverywear.R
+import com.ciot.deliverywear.bean.DealResult
 import com.ciot.deliverywear.ui.adapter.PointCardAdapter
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.custom.PointCardDecoration
+import java.util.LinkedList
 
 // 登录页面
 class PointFragment : BaseFragment() {
@@ -52,4 +54,12 @@ class PointFragment : BaseFragment() {
         recyclerView?.addItemDecoration(spaceItemDecoration)
     }
 
+    override fun refreshData(isRefreshImmediately: Boolean, dataList: LinkedList<out DealResult>?) {
+        //先传递数据过来.再通过显示数据
+        if (dataList == null || dataList.size <= 0) {
+            Log.w(TAG, "PointFragment dataList== null")
+            return
+        }
+
+    }
 }

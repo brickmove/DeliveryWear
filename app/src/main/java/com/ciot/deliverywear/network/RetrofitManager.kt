@@ -12,7 +12,6 @@ import com.ciot.deliverywear.bean.RobotAllResponse
 import com.ciot.deliverywear.bean.RobotInfoResponse
 import com.ciot.deliverywear.constant.HttpConstant
 import com.google.gson.JsonObject
-import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -31,7 +30,6 @@ import java.util.concurrent.atomic.AtomicReference
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.jetbrains.annotations.NotNull
 
 // 服务器网络请求管理类
 class RetrofitManager {
@@ -47,8 +45,11 @@ class RetrofitManager {
     private var mToken: AtomicReference<String> = AtomicReference()
     private var mUserId: AtomicReference<String> = AtomicReference()
     private var mProjectId: AtomicReference<String> = AtomicReference()
+    private var isLoadingSuccess: AtomicReference<Boolean> = AtomicReference(false)
     @Volatile
     private var mRobotId: MutableList<String>? = mutableListOf()
+    @Volatile
+    private var mPoints: MutableList<String>? = mutableListOf()
     /**
      * token无效时间(单位:毫秒 Unix时间戳)
      * 到达此时间后无效
@@ -128,6 +129,7 @@ class RetrofitManager {
     }
 
     fun getNavPoint(robotId: String, map: String) {
+        Log.d(TAG, "getNavPoint>>>>>>>")
         val token = getToken()
         if (token.isNullOrEmpty() || robotId.isEmpty()) {
             return
@@ -135,14 +137,14 @@ class RetrofitManager {
         getWuHanApiService().getNavigationPoint(token, robotId, map)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object:Observer <List<NavPointResponse>>{
+            .subscribe(object:Observer <NavPointResponse>{
                 override fun onSubscribe(d: Disposable) {
                     addSubscription(d)
                 }
 
-                override fun onNext(body: List<NavPointResponse>) {
+                override fun onNext(body: NavPointResponse) {
                     Log.d(TAG, "NavPointResponse: " + GsonUtils.toJson(body))
-                    //parseRobotAllResponseBody(body)
+                    parsePointAllResponseBody(body)
                 }
 
                 override fun onError(e: Throwable) {
@@ -150,12 +152,27 @@ class RetrofitManager {
                 }
 
                 override fun onComplete() {
+                    setIsLoading(true)
                 }
             })
     }
 
+    private fun parsePointAllResponseBody(body: NavPointResponse) {
+        val res: NavPointResponse = body
+        val result: Boolean? = res.result
+        val points: List<NavPointData>? = res.data
+        if (result != true || points.isNullOrEmpty()) {
+            return
+        }
+        mPoints = mutableListOf()
+        points.map {
+            it.getPositionName()?.let { it1 -> mPoints?.add(it1) }
+        }
+        Log.d(TAG, "parsePointAllResponseBody point list: " + GsonUtils.toJson(mPoints))
+    }
+
     @SuppressLint("CheckResult")
-    fun navigatePoint(id: String, positionName: String, z: Int, flag: Int, mapinfo: String) {
+    fun navigatePoint(id: String, positionName: String) {
         val token = getToken()
         if (token.isNullOrEmpty()) {
             return
@@ -163,9 +180,9 @@ class RetrofitManager {
         val jsonObject = JsonObject();
         jsonObject.addProperty("id", id)
         jsonObject.addProperty("positionName", positionName)
-        jsonObject.addProperty("z", z)
-        jsonObject.addProperty("flag", flag)
-        jsonObject.addProperty("mapinfo", mapinfo)
+//        jsonObject.addProperty("z", z)
+//        jsonObject.addProperty("flag", flag)
+//        jsonObject.addProperty("mapinfo", mapinfo)
         val body = jsonObject.toString()
             .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
         getWuHanApiService().singlePointNavigate(body, token)
@@ -218,6 +235,7 @@ class RetrofitManager {
                 }
 
                 override fun onComplete() {
+                    getNavPoint("YHDE1230D005B0SZGM2822002008", "")
                 }
             })
     }
@@ -401,6 +419,30 @@ class RetrofitManager {
 
     fun getUserId(): String? {
         return mUserId.get()
+    }
+
+    fun setPoints(points: MutableList<String>) {
+        mPoints?.addAll(points)
+    }
+
+    fun getPoints(): MutableList<String>? {
+        return mPoints
+    }
+
+    fun setIsLoading(state: Boolean) {
+        this.isLoadingSuccess.set(state)
+    }
+
+    fun getPointAtIndex(index: Int): String? {
+        val points = getPoints()
+        if (points != null && index >= 0 && index < points.size) {
+            return points[index]
+        }
+        return null
+    }
+
+    fun getIsLoading(): Boolean? {
+        return isLoadingSuccess.get()
     }
 
     fun addSubscription(disposable: Disposable?) {

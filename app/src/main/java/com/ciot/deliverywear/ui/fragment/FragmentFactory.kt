@@ -1,5 +1,6 @@
 package com.ciot.deliverywear.ui.fragment
 import android.util.Log
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.ciot.deliverywear.constant.ConstantLogic
@@ -59,7 +60,7 @@ object FragmentFactory {
         Log.d(ConstantLogic.FRAGMENT, "Fragment release")
     }
 
-    fun changeFragment(manager: FragmentManager, containerId: Int, newFragment: Fragment) {
+    fun changeFragment(manager: FragmentManager, container: ViewGroup, newFragment: Fragment) {
         Log.d(tag, "changeFragment>>>>>>>>")
         try {
             var isNew = true
@@ -74,7 +75,7 @@ object FragmentFactory {
                 }
             }
             if (isNew) {
-                transaction.add(containerId, newFragment)
+                transaction.add(container.id, newFragment)
             }
             transaction.setCustomAnimations(R.anim.fragment_in, R.anim.fragment_out)
             transaction.commitNowAllowingStateLoss()

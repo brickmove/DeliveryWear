@@ -20,7 +20,7 @@ interface WuhanApiService {
     fun getNavigationPoint(@Query("access_token") token: String?,
                            @Query("id") robot: String?,
                            @Query("map") map: String?)
-    : Observable<List<NavPointResponse>>
+    : Observable<NavPointResponse>
 
     /*单点导航*/
     @Headers(RetrofitUrlManager.DOMAIN_NAME_HEADER + Api.DOMAIN_NAME_PROPERTY)

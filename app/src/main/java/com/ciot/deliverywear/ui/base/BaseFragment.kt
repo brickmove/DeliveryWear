@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import java.util.LinkedList
-import com.ciot.deliverywear.bean.DealReault
+import com.ciot.deliverywear.bean.DealResult
 
 open class BaseFragment : Fragment() {
     private var mRootView: View? = null
@@ -39,7 +39,7 @@ open class BaseFragment : Fragment() {
      * @param isRefreshImmediately 如果Fragment已经创建过，传递true，否则传递false
      * @param dataList
      */
-    open fun refreshData(isRefreshImmediately: Boolean, dataList: LinkedList<out DealReault>?) {
+    open fun refreshData(isRefreshImmediately: Boolean, dataList: LinkedList<out DealResult>?) {
 
     }
 

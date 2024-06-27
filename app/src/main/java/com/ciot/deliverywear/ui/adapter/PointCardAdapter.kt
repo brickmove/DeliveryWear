@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.ciot.deliverywear.R
+import com.ciot.deliverywear.network.RetrofitManager
 
 
 class PointCardAdapter(private val context: Context, private val points: List<String>):
@@ -37,21 +38,19 @@ class PointCardAdapter(private val context: Context, private val points: List<St
         }
 
         override fun onClick(v: View?) {
-            val localPosition = adapterPosition
+            val index = adapterPosition
             if (v?.id == R.id.point_name) {
                 Log.d("MainActivity", "click position=$position")
                 // 重复点击同一个点位
-                if (localPosition == pointPosition) {
-                    if (isClicked) {
-                        v.setBackgroundResource(R.drawable.point_background_select)
-                        isClicked = false
-                    } else {
-                        v.setBackgroundResource(R.drawable.point_background_normal)
-                        isClicked = true
-                    }
-                } else {
+                if (isClicked) {
                     v.setBackgroundResource(R.drawable.point_background_select)
                     isClicked = false
+                } else {
+                    v.setBackgroundResource(R.drawable.point_background_normal)
+                    isClicked = true
+                }
+                RetrofitManager.instance.getPointAtIndex(index)?.let {
+                    //RetrofitManager.instance.navigatePoint("YHDE1230D005B0SZGM2822002008", it)
                 }
             }
         }

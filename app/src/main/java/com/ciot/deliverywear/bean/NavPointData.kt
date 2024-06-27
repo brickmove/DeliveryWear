@@ -4,7 +4,7 @@ class NavPointData {
     /**
      * 导航点名称
      */
-    private var positionName: String? = null
+    private var positionname: String? = null
 
     /**
      * X轴坐标
@@ -26,19 +26,27 @@ class NavPointData {
     /**
      * 楼层
      */
-    private var mapInfo: String? = null
+    private var mapinfo: String? = null
 
     /**
-     * 地图名称
+     * 点位类型
      */
-    private var mapName: String? = null
+    private var type = 0
+
+    fun getType(): Int {
+        return type
+    }
+
+    fun setType(type: Int) {
+        this.type = type
+    }
 
     fun getPositionName(): String? {
-        return positionName
+        return positionname
     }
 
     fun setPositionName(positionName: String?) {
-        this.positionName = positionName
+        this.positionname = positionName
     }
 
     fun getX(): Int {
@@ -66,20 +74,13 @@ class NavPointData {
     }
 
     fun getMapInfo(): String? {
-        return mapInfo
+        return mapinfo
     }
 
     fun setMapInfo(floor: String?) {
-        this.mapInfo = floor
+        this.mapinfo = floor
     }
 
-    fun getMapName(): String? {
-        return mapName
-    }
-
-    fun setMapName(mapName: String?) {
-        this.mapName = mapName
-    }
 
     fun getZ(): Int {
         return z
@@ -91,13 +92,13 @@ class NavPointData {
 
     override fun toString(): String {
         return "MarkerPoint{" +
-                "positionName='" + positionName + '\'' +
+                "positionName='" + positionname + '\'' +
                 ", x=" + x +
                 ", y=" + y +
                 ", z=" + z +
                 ", angle=" + angle +
-                ", mapInfo=" + mapInfo +
-                ", mapName='" + mapName + '\'' +
+                ", type=" + type +
+                ", mapinfo=" + mapinfo + '\'' +
                 '}'
     }
 }
