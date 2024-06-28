@@ -11,14 +11,15 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.RecyclerView
+import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.R
 import com.ciot.deliverywear.bean.DealResult
+import com.ciot.deliverywear.bean.RobotData
 import com.ciot.deliverywear.constant.ConstantLogic
+import com.ciot.deliverywear.databinding.ActivityMainBinding
 import com.ciot.deliverywear.network.RetrofitManager
-import com.ciot.deliverywear.ui.adapter.PointCardAdapter
+import com.ciot.deliverywear.ui.adapter.RobotCardAdapter
 import com.ciot.deliverywear.ui.base.BaseFragment
-import com.ciot.deliverywear.ui.custom.PointCardDecoration
 import com.ciot.deliverywear.ui.fragment.FragmentFactory
 import com.ciot.deliverywear.utils.ContextUtil
 import com.ciot.deliverywear.utils.MyDeviceUtils
@@ -28,12 +29,11 @@ import io.reactivex.disposables.Disposable
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlinx.android.synthetic.main.fragment_home.*
-import java.util.LinkedList
 
 class MainActivity : AppCompatActivity() , View.OnClickListener {
     private var mCompositeDisposable: CompositeDisposable? = null
     private var prefManager: PrefManager? = null
+
     companion object {
         private const val TAG = "MainActivity"
     }
@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         disposable?.let { mCompositeDisposable!!.add(disposable) }
     }
 
+    private lateinit var binding: ActivityMainBinding
     private var timeTextView: TextView? = null
     private var timeStandby: TextView? = null
     private var dateStandby: TextView? = null
@@ -62,10 +63,6 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     private var deviceImgView: ImageView? = null
     private var currentfragment: BaseFragment? = null
     private var showingFragment: Fragment? = null
-    private var recyclerView: RecyclerView? = null
-    private var adapter: PointCardAdapter? = null
-    private var loadingLayout: View? = null
-    private var mainContent: View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "MainActivity onCreate start")
@@ -78,7 +75,8 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             WindowManager.LayoutParams.FLAG_FULLSCREEN
         )
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.fragment_home)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         initWatch()
         initView()
         getCurTime()
@@ -86,48 +84,59 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     override fun onResume() {
         super.onResume()
-        initAnimation()
         initListener()
-        showHome()
+        Log.d(TAG, "prefManager.bindKey: " + prefManager?.bindKey)
+        if (prefManager?.bindKey.isNullOrEmpty()) {
+            initAnimation()
+        } else {
+            showWelcome()
+        }
     }
 
     private fun showHome() {
+        Log.d(TAG, "MainActivity showHome >>>>>>>>>")
         val dealResult = DealResult()
-        if (prefManager?.bindKey?.isNotEmpty() == true) {
-            updateFragment(ConstantLogic.MSG_TYPE_HOME, null)
-        } else {
-            updateFragment(ConstantLogic.MSG_TYPE_WELCOME, null)
-        }
+        dealResult.type = ConstantLogic.MSG_TYPE_HOME
+        dealResult.robotInfoList = RetrofitManager.instance.getRobotData()
+        Log.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
+        updateFragment(ConstantLogic.MSG_TYPE_HOME, dealResult)
+    }
+
+    private fun showWelcome() {
+        Log.d(TAG, "MainActivity showWelcome >>>>>>>>>")
+        updateFragment(ConstantLogic.MSG_TYPE_WELCOME, null)
     }
 
     private fun initAnimation() {
         if (!RetrofitManager.instance.getIsLoading()!!) {
-            showLoadingLayout()
+            showLoadingView()
             Handler().postDelayed({
                 // 数据加载完成后隐藏加载布局，显示主要内容的部分
-                hideLoadingLayout()
+                hideLoadingView()
                 RetrofitManager.instance.setIsLoading(true)
-            }, 2000) // 模拟2秒的数据加载延迟
+                showHome()
+            }, 1000) // 数据加载延迟
+        } else {
+            showHome()
         }
     }
 
-    private fun showLoadingLayout() {
-        Log.d(TAG, "MainActivity showLoadingLayout")
-        loadingLayout?.visibility = View.VISIBLE
+    private fun showLoadingView() {
+        Log.d(TAG, "MainActivity showLoadingView")
+        binding.loadingView.loadingLayout.visibility = View.VISIBLE
+        binding.headView.timeTextView.visibility = View.GONE
+        binding.headView.myRobot.visibility = View.GONE
     }
 
-    private fun hideLoadingLayout() {
-        Log.d(TAG, "MainActivity hideLoadingLayout")
-        loadingLayout?.visibility = View.GONE
-        setContentView(R.layout.fragment_point)
-        recyclerView = findViewById(R.id.point_list_view)
-        adapter = RetrofitManager.instance.getPoints()?.let { PointCardAdapter(this, it) }
-        recyclerView?.adapter = adapter
-        val spaceItemDecoration = PointCardDecoration(8, 16)
-        recyclerView?.addItemDecoration(spaceItemDecoration)
+    private fun hideLoadingView() {
+        Log.d(TAG, "MainActivity hideLoadingView")
+        binding.loadingView.loadingLayout.visibility = View.GONE
+        binding.headView.timeTextView.visibility = View.VISIBLE
+        binding.headView.myRobot.visibility = View.VISIBLE
     }
 
     private fun initListener() {
+        Log.d(TAG, "initListener start")
         enterPassword?.setOnClickListener(this)
         deviceImgView?.setOnClickListener(this)
     }
@@ -161,8 +170,6 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         returnView?.visibility = View.INVISIBLE
         myRobotText?.visibility = View.INVISIBLE
 
-        loadingLayout = findViewById(R.id.loading_layout)
-        mainContent = findViewById(R.id.point)
 //        prefManager = PrefManager(this)
 //        if (prefManager!!.isFirstTimeLaunch && prefManager?.bindKey == null) {
 //            setContentView(R.layout.fragment_welcome)
@@ -198,7 +205,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             override fun run() {
                 val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
                 val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
-                timeTextView?.text = timeFormat.format(Date())
+                binding.headView.timeTextView.text = timeFormat.format(Date())
                 timeStandby?.text = timeFormat.format(Date())
                 dateStandby?.text = dateFormat.format(Date())
                 handler.postDelayed(this, 1000) // 每秒更新一次时间
@@ -213,10 +220,12 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         onUnsubscribe()
     }
 
-    private fun updateFragment(type: Int, results: LinkedList<out DealResult>?) {
+    private fun updateFragment(type: Int, result: DealResult?) {
         getFragment(type)
         changeFragment(type, currentfragment)
-        currentfragment?.refreshData(false, results)
+        if (result != null) {
+            currentfragment?.refreshData(false, result)
+        }
     }
 
     fun getCurrentFragment(): BaseFragment? {
@@ -241,15 +250,14 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         if (type == ConstantLogic.MSG_TYPE_HOME
             || type == ConstantLogic.MSG_TYPE_AREA
             || type == ConstantLogic.MSG_TYPE_POINT
-            || type == ConstantLogic.MSG_TYPE_WELCOME
             ) {
-            container_full.visibility = View.VISIBLE
-            containerView = container_full
-            container_main.visibility = View.GONE
+            binding.containerMain.visibility = View.VISIBLE
+            containerView = binding.containerMain
+            binding.containerFull.visibility = View.GONE
         } else {
-            container_main.visibility = View.VISIBLE
-            containerView = container_main
-            container_full.visibility = View.GONE
+            binding.containerFull.visibility = View.VISIBLE
+            containerView = binding.containerFull
+            binding.containerMain.visibility = View.GONE
         }
         FragmentFactory.changeFragment(supportFragmentManager, containerView, newFragment)
         showingFragment = newFragment

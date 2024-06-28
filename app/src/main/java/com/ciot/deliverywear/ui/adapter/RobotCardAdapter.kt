@@ -1,5 +1,6 @@
 package com.ciot.deliverywear.ui.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,12 +10,13 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.ciot.deliverywear.R
+import com.ciot.deliverywear.bean.RobotData
+import com.ciot.deliverywear.network.RetrofitManager
 
 
 class RobotCardAdapter(
     private val context: Context,
-    private val robotIds: List<String>,
-    private val statuses: List<String>):
+    private val robotData: List<RobotData>):
     RecyclerView.Adapter<RobotCardAdapter.RobotCardViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RobotCardViewHolder {
@@ -23,14 +25,13 @@ class RobotCardAdapter(
     }
 
     override fun getItemCount(): Int {
-        //return RetrofitManager.instance.getRobotList()?.size ?: 0
-        return robotIds.size
+        return robotData.size
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: RobotCardViewHolder, position: Int) {
-        //holder.robotId.text = RetrofitManager.instance.getRobotList()?.get(position)
-        holder.robotId.text = robotIds[position]
-        holder.battery.text = statuses[position]
+        holder.robotId.text = robotData[position].id
+        holder.battery.text = robotData[position].battery.toString() + "%"
     }
 
     inner class RobotCardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {

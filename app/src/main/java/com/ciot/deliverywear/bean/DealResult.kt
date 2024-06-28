@@ -8,7 +8,15 @@ package com.ciot.deliverywear.bean
 class DealResult {
     var type: Int = 0
 
+    // 界面数据设置
+    var robotList: List<String>? = null
+    var robotInfoList: List<RobotData>? = null
+    var areaInfoList: List<String>? = null
+    var pointInfoList: List<String>? = null
+
     override fun toString(): String {
-        return "DealResult()"
+        return "DealResult(type=$type, " +
+                "robotList = $robotList, robotInfoList = $robotInfoList, + areaInfoList = $areaInfoList + pointInfoList = $pointInfoList" +
+                ")"
     }
 }

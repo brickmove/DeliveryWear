@@ -54,9 +54,9 @@ class PointFragment : BaseFragment() {
         recyclerView?.addItemDecoration(spaceItemDecoration)
     }
 
-    override fun refreshData(isRefreshImmediately: Boolean, dataList: LinkedList<out DealResult>?) {
+    override fun refreshData(isRefreshImmediately: Boolean, data: DealResult) {
         //先传递数据过来.再通过显示数据
-        if (dataList == null || dataList.size <= 0) {
+        if (data == null) {
             Log.w(TAG, "PointFragment dataList== null")
             return
         }

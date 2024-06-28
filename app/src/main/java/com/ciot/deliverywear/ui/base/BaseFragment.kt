@@ -37,10 +37,9 @@ open class BaseFragment : Fragment() {
 
     /**
      * @param isRefreshImmediately 如果Fragment已经创建过，传递true，否则传递false
-     * @param dataList
+     * @param data
      */
-    open fun refreshData(isRefreshImmediately: Boolean, dataList: LinkedList<out DealResult>?) {
+    open fun refreshData(isRefreshImmediately: Boolean, data: DealResult) {
 
     }
-
 }

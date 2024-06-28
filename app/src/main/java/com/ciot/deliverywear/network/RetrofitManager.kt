@@ -9,6 +9,7 @@ import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.bean.NavPointData
 import com.ciot.deliverywear.bean.NavPointResponse
 import com.ciot.deliverywear.bean.RobotAllResponse
+import com.ciot.deliverywear.bean.RobotData
 import com.ciot.deliverywear.bean.RobotInfoResponse
 import com.ciot.deliverywear.constant.HttpConstant
 import com.google.gson.JsonObject
@@ -48,6 +49,8 @@ class RetrofitManager {
     private var isLoadingSuccess: AtomicReference<Boolean> = AtomicReference(false)
     @Volatile
     private var mRobotId: MutableList<String>? = mutableListOf()
+    @Volatile
+    private var mRobotData: MutableList<RobotData>? = mutableListOf()
     @Volatile
     private var mPoints: MutableList<String>? = mutableListOf()
     /**
@@ -92,6 +95,7 @@ class RetrofitManager {
         }
         val start ="0"
         val limit ="100"
+        Log.d(TAG, "param--->token: $token, project: $project")
         getWuHanApiService().findRobotByProject(token, project, start, limit)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -122,10 +126,14 @@ class RetrofitManager {
             return
         }
         mRobotId = mutableListOf()
+        mRobotData = mutableListOf()
         robotInfo.map {
-            it.id?.let { it1 -> mRobotId?.add(it1) }
+            val robotData = RobotData()
+            robotData.id = it.id
+            robotData.battery= 60
+            mRobotData!!.add(robotData)
         }
-        Log.d(TAG, "parseRobotAllResponseBody robot list: " + GsonUtils.toJson(mRobotId))
+        Log.d(TAG, "parseRobotAllResponseBody robot list: " + GsonUtils.toJson(mRobotData))
     }
 
     fun getNavPoint(robotId: String, map: String) {
@@ -235,7 +243,8 @@ class RetrofitManager {
                 }
 
                 override fun onComplete() {
-                    getNavPoint("YHDE1230D005B0SZGM2822002008", "")
+                    getRobots()
+                    //getNavPoint("YHDE1230D005B0SZGM2822002008", "")
                 }
             })
     }
@@ -377,6 +386,10 @@ class RetrofitManager {
 
     fun getRobotList(): MutableList<String>? {
         return mRobotId
+    }
+
+    fun getRobotData(): MutableList<RobotData>? {
+        return mRobotData
     }
 
     fun setRobotList(robotId: List<String>) {
