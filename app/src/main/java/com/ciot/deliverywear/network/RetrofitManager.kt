@@ -13,6 +13,7 @@ import com.ciot.deliverywear.bean.RobotData
 import com.ciot.deliverywear.bean.RobotInfoResponse
 import com.ciot.deliverywear.constant.HttpConstant
 import com.google.gson.JsonObject
+import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.greenrobot.eventbus.EventBus
 
 // 服务器网络请求管理类
 class RetrofitManager {
@@ -132,6 +134,11 @@ class RetrofitManager {
             robotData.id = it.id
             robotData.battery= 60
             mRobotData!!.add(robotData)
+            if (it.id.isNullOrEmpty()) {
+                mRobotId!!.add("")
+            } else {
+                mRobotId!!.add(it.id!!)
+            }
         }
         Log.d(TAG, "parseRobotAllResponseBody robot list: " + GsonUtils.toJson(mRobotData))
     }
@@ -142,6 +149,7 @@ class RetrofitManager {
         if (token.isNullOrEmpty() || robotId.isEmpty()) {
             return
         }
+        onUnsubscribe()
         getWuHanApiService().getNavigationPoint(token, robotId, map)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -165,7 +173,15 @@ class RetrofitManager {
             })
     }
 
-    private fun parsePointAllResponseBody(body: NavPointResponse) {
+    fun getNavPoint(robotId: String) : Observable<NavPointResponse>? {
+        val token = getToken()
+        if (token.isNullOrEmpty() || robotId.isEmpty()) {
+            return null
+        }
+        return mWuhanApiService?.getNavigationPoint(token, robotId, "")
+    }
+
+    fun parsePointAllResponseBody(body: NavPointResponse) {
         val res: NavPointResponse = body
         val result: Boolean? = res.result
         val points: List<NavPointData>? = res.data
@@ -456,6 +472,12 @@ class RetrofitManager {
 
     fun getIsLoading(): Boolean? {
         return isLoadingSuccess.get()
+    }
+
+    fun onUnsubscribe() {
+        if (mCompositeDisposable != null) {
+            mCompositeDisposable!!.clear()
+        }
     }
 
     fun addSubscription(disposable: Disposable?) {

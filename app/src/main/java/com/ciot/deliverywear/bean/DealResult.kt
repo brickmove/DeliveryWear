@@ -9,6 +9,7 @@ class DealResult {
     var type: Int = 0
 
     // 界面数据设置
+    var selectRobotId: String? = null
     var robotList: List<String>? = null
     var robotInfoList: List<RobotData>? = null
     var areaInfoList: List<String>? = null

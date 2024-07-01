@@ -14,13 +14,12 @@ import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.R
 import com.ciot.deliverywear.bean.DealResult
-import com.ciot.deliverywear.bean.RobotData
 import com.ciot.deliverywear.constant.ConstantLogic
-import com.ciot.deliverywear.databinding.ActivityMainBinding
+import com.ciot.deliverywear.databinding.*
 import com.ciot.deliverywear.network.RetrofitManager
-import com.ciot.deliverywear.ui.adapter.RobotCardAdapter
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.fragment.FragmentFactory
+import com.ciot.deliverywear.ui.fragment.PointFragment
 import com.ciot.deliverywear.utils.ContextUtil
 import com.ciot.deliverywear.utils.MyDeviceUtils
 import com.ciot.deliverywear.utils.PrefManager
@@ -139,6 +138,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         Log.d(TAG, "initListener start")
         enterPassword?.setOnClickListener(this)
         deviceImgView?.setOnClickListener(this)
+        returnView?.setOnClickListener(this)
     }
 
     private fun initWatch() {
@@ -167,8 +167,8 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         deviceImgView = findViewById(R.id.device_image)
         returnView = findViewById(R.id.return_img)
         myRobotText = findViewById(R.id.my_robot)
-        returnView?.visibility = View.INVISIBLE
-        myRobotText?.visibility = View.INVISIBLE
+//        returnView?.visibility = View.INVISIBLE
+//        myRobotText?.visibility = View.INVISIBLE
 
 //        prefManager = PrefManager(this)
 //        if (prefManager!!.isFirstTimeLaunch && prefManager?.bindKey == null) {
@@ -183,6 +183,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 //        }
     }
     override fun onClick(view: View?) {
+        Log.d(TAG, "---onClick id---" + view?.id)
         when (view?.id) {
             R.id.enter_password -> {
                 Log.d(TAG, "---enter_password---")
@@ -194,6 +195,11 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             }
             R.id.device_image -> {
                 updateFragment(ConstantLogic.MSG_TYPE_POINT, null)
+            }
+            R.id.return_img -> {
+                if (currentfragment is PointFragment) {
+                    showHome()
+                }
             }
         }
     }
@@ -220,9 +226,10 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         onUnsubscribe()
     }
 
-    private fun updateFragment(type: Int, result: DealResult?) {
+    fun updateFragment(type: Int, result: DealResult?) {
         getFragment(type)
         changeFragment(type, currentfragment)
+        setHeadView(type)
         if (result != null) {
             currentfragment?.refreshData(false, result)
         }
@@ -246,6 +253,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             Log.d(TAG, "changeFragment newFragment->${newFragment.javaClass.simpleName} == showingFragment>${showingFragment?.javaClass?.simpleName}")
             return
         }
+
         val containerView: ViewGroup
         if (type == ConstantLogic.MSG_TYPE_HOME
             || type == ConstantLogic.MSG_TYPE_AREA
@@ -261,5 +269,30 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         }
         FragmentFactory.changeFragment(supportFragmentManager, containerView, newFragment)
         showingFragment = newFragment
+    }
+
+    private fun setHeadView(type: Int) {
+        when (type) {
+            ConstantLogic.MSG_TYPE_HOME -> {
+                timeTextView?.visibility = View.VISIBLE
+                myRobotText?.visibility = View.VISIBLE
+                returnView?.visibility = View.GONE
+            }
+            ConstantLogic.MSG_TYPE_POINT, ConstantLogic.MSG_TYPE_LOGIN -> {
+                timeTextView?.visibility = View.VISIBLE
+                myRobotText?.visibility = View.GONE
+                returnView?.visibility = View.VISIBLE
+            }
+            ConstantLogic.MSG_TYPE_STANDBY -> {
+                timeTextView?.visibility = View.GONE
+                myRobotText?.visibility = View.GONE
+                returnView?.visibility = View.GONE
+            }
+            ConstantLogic.MSG_TYPE_WELCOME -> {
+                timeTextView?.visibility = View.VISIBLE
+                myRobotText?.visibility = View.GONE
+                returnView?.visibility = View.GONE
+            }
+        }
     }
 }
