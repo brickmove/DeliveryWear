@@ -3,9 +3,8 @@ import android.util.Log
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
-import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.R
-import com.ciot.deliverywear.ui.MainActivity
+import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.ui.base.BaseFragment
 
 object FragmentFactory {
@@ -28,9 +27,11 @@ object FragmentFactory {
         }
         fragment = when (fragmentType) {
             ConstantLogic.MSG_TYPE_WELCOME -> WelcomeFragment()
+            ConstantLogic.MSG_TYPE_STANDBY -> StandbyFragment()
             ConstantLogic.MSG_TYPE_LOGIN -> LoginFragment()
             ConstantLogic.MSG_TYPE_HOME -> HomeFragment()
             ConstantLogic.MSG_TYPE_POINT -> PointFragment()
+            ConstantLogic.MSG_TYPE_HEADING -> HeadingFragment()
             else -> HomeFragment()
         }
         mCacheFragment!![fragmentType] = fragment
@@ -127,5 +128,4 @@ object FragmentFactory {
             Log.d(tag, "changeFragment err: ", e)
         }
     }
-
 }

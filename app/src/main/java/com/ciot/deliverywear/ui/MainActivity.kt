@@ -2,7 +2,9 @@ package com.ciot.deliverywear.ui
 
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -14,17 +16,23 @@ import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.R
 import com.ciot.deliverywear.bean.DealResult
+import com.ciot.deliverywear.bean.NavPointResponse
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.databinding.*
 import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.fragment.FragmentFactory
+import com.ciot.deliverywear.ui.fragment.HomeFragment
 import com.ciot.deliverywear.ui.fragment.PointFragment
+import com.ciot.deliverywear.ui.fragment.StandbyFragment
 import com.ciot.deliverywear.utils.ContextUtil
 import com.ciot.deliverywear.utils.MyDeviceUtils
 import com.ciot.deliverywear.utils.PrefManager
+import io.reactivex.Observer
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -52,11 +60,10 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     private lateinit var binding: ActivityMainBinding
     private var timeTextView: TextView? = null
-    private var timeStandby: TextView? = null
-    private var dateStandby: TextView? = null
     private var welcomeSmile: ImageView? = null
     private var welcomeWords: TextView? = null
     private var returnView: ImageView? = null
+    private var cancelView: ImageView? = null
     private var myRobotText: TextView? = null
     private var enterPassword: CardView? = null
     private var deviceImgView: ImageView? = null
@@ -90,15 +97,57 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         } else {
             showWelcome()
         }
+        resetTimer()
+    }
+    private fun showStandby() {
+        if (currentfragment is StandbyFragment) {
+            return
+        }
+        Log.d(TAG, "MainActivity showStandby >>>>>>>>>")
+        val dealResult = DealResult()
+        dealResult.type = ConstantLogic.MSG_TYPE_STANDBY
+        updateFragment(ConstantLogic.MSG_TYPE_HEADING, dealResult)
+        //updateFragment(ConstantLogic.MSG_TYPE_STANDBY, dealResult)
     }
 
-    private fun showHome() {
+    fun showHome() {
+        if (currentfragment is HomeFragment) {
+            return
+        }
         Log.d(TAG, "MainActivity showHome >>>>>>>>>")
         val dealResult = DealResult()
         dealResult.type = ConstantLogic.MSG_TYPE_HOME
         dealResult.robotInfoList = RetrofitManager.instance.getRobotData()
         Log.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
         updateFragment(ConstantLogic.MSG_TYPE_HOME, dealResult)
+    }
+
+    fun showNav(robotId: String) {
+        RetrofitManager.instance.getNavPoint(robotId)
+            ?.subscribeOn(Schedulers.io())
+            ?.observeOn(AndroidSchedulers.mainThread())
+            ?.subscribe(object : Observer<NavPointResponse> {
+                override fun onSubscribe(d: Disposable) {
+                    addSubscription(d)
+                }
+
+                override fun onNext(response: NavPointResponse) {
+                    Log.d(TAG, "NavPointResponse: " + GsonUtils.toJson(response))
+                    RetrofitManager.instance.parsePointAllResponseBody(response)
+                    val dealResult = DealResult()
+                    dealResult.pointInfoList = RetrofitManager.instance.getPoints()
+                    dealResult.selectRobotId = robotId
+                    updateFragment(ConstantLogic.MSG_TYPE_POINT, dealResult)
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.e(TAG, "点位获取失败 ：${e.message}")
+                }
+
+                override fun onComplete() {
+
+                }
+            })
     }
 
     private fun showWelcome() {
@@ -139,6 +188,10 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         enterPassword?.setOnClickListener(this)
         deviceImgView?.setOnClickListener(this)
         returnView?.setOnClickListener(this)
+//        findViewById<View>(android.R.id.content).setOnTouchListener { _, _ ->
+//            resetTimer()
+//            true
+//        }
     }
 
     private fun initWatch() {
@@ -159,14 +212,14 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     private fun initView() {
         Log.d(TAG, "initView start")
         timeTextView = findViewById(R.id.timeTextView)
-        timeStandby = findViewById(R.id.standby_time)
-        dateStandby = findViewById(R.id.standby_date)
         welcomeSmile = findViewById(R.id.welcome_smile)
         welcomeWords = findViewById(R.id.welcome_words)
         enterPassword = findViewById(R.id.enter_password)
         deviceImgView = findViewById(R.id.device_image)
         returnView = findViewById(R.id.return_img)
+        cancelView = findViewById(R.id.cancel_img)
         myRobotText = findViewById(R.id.my_robot)
+
 //        returnView?.visibility = View.INVISIBLE
 //        myRobotText?.visibility = View.INVISIBLE
 
@@ -204,26 +257,43 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         }
     }
 
-    private fun getCurTime() {
-        val handler = Handler()
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        // 捕捉所有触摸事件
+        resetTimer()
+        return super.dispatchTouchEvent(ev)
+    }
+    private fun resetTimer() {
+        // 重置计时器
+        handler.removeCallbacks(standbyRunnable)
+        handler.postDelayed(standbyRunnable, delayMillis)
+    }
+    private val handler = Handler(Looper.getMainLooper())
+    private val standbyRunnable = Runnable {
+        // 进入待机页面
+        showStandby()
+    }
+    private val delayMillis: Long = 30000 // 30秒
 
-        val updateTimeRunnable = object : Runnable {
+    private lateinit var curTimeHandler: Handler
+    private lateinit var updateTimeRunnable: Runnable
+    private fun getCurTime() {
+        curTimeHandler = Handler()
+        updateTimeRunnable = object : Runnable {
             override fun run() {
                 val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-                val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
                 binding.headView.timeTextView.text = timeFormat.format(Date())
-                timeStandby?.text = timeFormat.format(Date())
-                dateStandby?.text = dateFormat.format(Date())
-                handler.postDelayed(this, 1000) // 每秒更新一次时间
+                curTimeHandler.postDelayed(this, 1000) // 每秒更新一次时间
             }
         }
-        handler.post(updateTimeRunnable)
+        curTimeHandler.post(updateTimeRunnable)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         ContextUtil.clearContext()
         onUnsubscribe()
+        handler.removeCallbacks(standbyRunnable)
+        curTimeHandler.removeCallbacksAndMessages(null)
     }
 
     fun updateFragment(type: Int, result: DealResult?) {
@@ -258,6 +328,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         if (type == ConstantLogic.MSG_TYPE_HOME
             || type == ConstantLogic.MSG_TYPE_AREA
             || type == ConstantLogic.MSG_TYPE_POINT
+            || type == ConstantLogic.MSG_TYPE_LOGIN
+            || type == ConstantLogic.MSG_TYPE_SETTING
+            || type == ConstantLogic.MSG_TYPE_HEADING
             ) {
             binding.containerMain.visibility = View.VISIBLE
             containerView = binding.containerMain
@@ -277,21 +350,31 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 timeTextView?.visibility = View.VISIBLE
                 myRobotText?.visibility = View.VISIBLE
                 returnView?.visibility = View.GONE
+                cancelView?.visibility = View.GONE
             }
             ConstantLogic.MSG_TYPE_POINT, ConstantLogic.MSG_TYPE_LOGIN -> {
                 timeTextView?.visibility = View.VISIBLE
                 myRobotText?.visibility = View.GONE
                 returnView?.visibility = View.VISIBLE
+                cancelView?.visibility = View.GONE
             }
             ConstantLogic.MSG_TYPE_STANDBY -> {
                 timeTextView?.visibility = View.GONE
                 myRobotText?.visibility = View.GONE
                 returnView?.visibility = View.GONE
+                cancelView?.visibility = View.GONE
             }
             ConstantLogic.MSG_TYPE_WELCOME -> {
                 timeTextView?.visibility = View.VISIBLE
                 myRobotText?.visibility = View.GONE
                 returnView?.visibility = View.GONE
+                cancelView?.visibility = View.GONE
+            }
+            ConstantLogic.MSG_TYPE_HEADING -> {
+                timeTextView?.visibility = View.VISIBLE
+                myRobotText?.visibility = View.GONE
+                returnView?.visibility = View.GONE
+                cancelView?.visibility = View.VISIBLE
             }
         }
     }

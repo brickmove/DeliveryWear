@@ -10,11 +10,11 @@ class DealResult {
 
     // 界面数据设置
     var selectRobotId: String? = null
+    var selectPoint: String? = null
     var robotList: List<String>? = null
     var robotInfoList: List<RobotData>? = null
     var areaInfoList: List<String>? = null
     var pointInfoList: List<String>? = null
-
     override fun toString(): String {
         return "DealResult(type=$type, " +
                 "robotList = $robotList, robotInfoList = $robotInfoList, + areaInfoList = $areaInfoList + pointInfoList = $pointInfoList" +

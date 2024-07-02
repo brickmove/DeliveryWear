@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.R
@@ -18,6 +20,7 @@ import com.ciot.deliverywear.ui.MainActivity
 import com.ciot.deliverywear.ui.adapter.RobotCardAdapter
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.custom.RobotCardDecoration
+import com.ciot.deliverywear.utils.FormatUtil
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -26,6 +29,9 @@ import io.reactivex.schedulers.Schedulers
 
 class HomeFragment: BaseFragment() {
     private var recyclerView: RecyclerView? = null
+    private var settingButton: ImageView? = null
+    private var noRobotView: ImageView? = null
+    private var noRobotText: TextView? = null
     private var adapter: RobotCardAdapter? = null
     private val mDataList: MutableList<RobotData> = ArrayList()
     private var mRobotDisposable: CompositeDisposable? = null
@@ -35,8 +41,15 @@ class HomeFragment: BaseFragment() {
 
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         val view = inflater.inflate(R.layout.fragment_home , container , false)
-        recyclerView = view.findViewById(R.id.robot_list_view)
+        initView(view)
         return view
+    }
+
+    private fun initView(view: View?) {
+        recyclerView = view?.findViewById(R.id.robot_list_view)
+        settingButton = view?.findViewById(R.id.settingButton)
+        noRobotView = view?.findViewById(R.id.no_robot_img)
+        noRobotText = view?.findViewById(R.id.no_robot_tx)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -62,7 +75,6 @@ class HomeFragment: BaseFragment() {
                 //Log.d(TAG, "HomeFragment onScrolled: dx = $dx, dy = $dy")
             }
         })
-        //adapter?.setOnItemClickListener(object : RobotCardAdapter.OnRobotClickListener  {
         adapter?.setSummonButtonClickListener(object : RobotCardAdapter.OnSummonClickListener  {
             override fun onSummonClick(position: Int) {
                 if (position <= RecyclerView.NO_POSITION) {
@@ -110,14 +122,24 @@ class HomeFragment: BaseFragment() {
             mDataList.clear()
         }
 
-        data.robotInfoList?.map {
-            val robotData = RobotData()
-            robotData.id = it.id
-            robotData.battery= 60
-            mDataList.add(robotData)
+        if (data.robotInfoList?.size == 0) {
+            recyclerView?.visibility = View.GONE
+            settingButton?.visibility = View.VISIBLE
+            noRobotView?.visibility = View.VISIBLE
+            noRobotText?.visibility = View.VISIBLE
+        } else {
+            data.robotInfoList?.map {
+                val robotData = RobotData()
+                robotData.id = it.id
+                robotData.name = it.name
+                robotData.link = it.link
+                robotData.label = it.label?.let { it1 -> FormatUtil.formatLable(it1) }
+                robotData.battery= 60
+                mDataList.add(robotData)
+            }
+            Log.w(TAG, "HomeFragment mDataList: " + GsonUtils.toJson(mDataList))
+            adapter?.notifyDataSetChanged()
         }
-        Log.w(TAG, "HomeFragment mDataList: " + GsonUtils.toJson(mDataList))
-        adapter?.notifyDataSetChanged()
     }
 
     fun onUnsubscribe() {

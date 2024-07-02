@@ -30,6 +30,11 @@
         <item name="android:textColor">@color/default_summon</item>
         <item name="android:fontFamily">@font/lexend_medium</item>
     </style>
+    <style name="heading_cancel">
+        <item name="android:background">@drawable/heading_cancel_background</item>
+        <item name="android:textColor">@color/default_summon</item>
+        <item name="android:fontFamily">@font/lexend_medium</item>
+    </style>
     <style name="point">
         <item name="android:background">@drawable/point_background_normal</item>
         <item name="android:textColor">@color/white</item>

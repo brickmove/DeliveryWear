@@ -12,4 +12,7 @@ class RobotData {
 
     // 设备电量
     var battery: Int? = null
+
+    // 设备连接状态
+    var link: Boolean = false
 }

@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicReference
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import com.ciot.deliverywear.utils.FormatUtil
 import org.greenrobot.eventbus.EventBus
 
 // 服务器网络请求管理类
@@ -132,6 +133,9 @@ class RetrofitManager {
         robotInfo.map {
             val robotData = RobotData()
             robotData.id = it.id
+            robotData.name = it.name
+            robotData.link = it.link == true
+            robotData.label = it.label?.let { it1 -> FormatUtil.formatLable(it1) }
             robotData.battery= 60
             mRobotData!!.add(robotData)
             if (it.id.isNullOrEmpty()) {
@@ -260,7 +264,6 @@ class RetrofitManager {
 
                 override fun onComplete() {
                     getRobots()
-                    //getNavPoint("YHDE1230D005B0SZGM2822002008", "")
                 }
             })
     }

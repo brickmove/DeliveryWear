@@ -17,4 +17,7 @@
     <color name="robot_card_bc">#26FFFFFF</color>
     <color name="default_green">#07E4AF</color>
     <color name="default_summon">#030303</color>
+    <color name="state_green">#07E4AF</color>
+    <color name="state_red">#E40714</color>
+    <color name="state_orange">#FF7A00</color>
 </resources>
