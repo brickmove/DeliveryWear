@@ -11,21 +11,22 @@ import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.R
 import com.ciot.deliverywear.bean.DealResult
 import com.ciot.deliverywear.bean.NavPointResponse
 import com.ciot.deliverywear.constant.ConstantLogic
-import com.ciot.deliverywear.databinding.*
+import com.ciot.deliverywear.databinding.ActivityMainBinding
 import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.ui.base.BaseFragment
+import com.ciot.deliverywear.ui.fragment.BindingFragment
 import com.ciot.deliverywear.ui.fragment.FragmentFactory
 import com.ciot.deliverywear.ui.fragment.HeadingFragment
 import com.ciot.deliverywear.ui.fragment.HomeFragment
 import com.ciot.deliverywear.ui.fragment.PointFragment
 import com.ciot.deliverywear.ui.fragment.StandbyFragment
+import com.ciot.deliverywear.ui.fragment.WelcomeFragment
 import com.ciot.deliverywear.utils.ContextUtil
 import com.ciot.deliverywear.utils.MyDeviceUtils
 import com.ciot.deliverywear.utils.PrefManager
@@ -61,13 +62,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     private lateinit var binding: ActivityMainBinding
     private var timeTextView: TextView? = null
-    private var welcomeSmile: ImageView? = null
-    private var welcomeWords: TextView? = null
     private var returnView: ImageView? = null
     private var cancelView: ImageView? = null
     private var myRobotText: TextView? = null
-    private var enterPassword: CardView? = null
-    private var deviceImgView: ImageView? = null
     private var currentfragment: BaseFragment? = null
     private var showingFragment: Fragment? = null
 
@@ -94,11 +91,11 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         initListener()
         Log.d(TAG, "prefManager.bindKey: " + prefManager?.bindKey)
         if (prefManager?.bindKey.isNullOrEmpty()) {
-            initAnimation()
-        } else {
             showWelcome()
+        } else {
+            initAnimation()
+            resetTimer()
         }
-        resetTimer()
     }
     private fun showStandby() {
         if (currentfragment is StandbyFragment) {
@@ -185,14 +182,8 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     private fun initListener() {
         Log.d(TAG, "initListener start")
-        enterPassword?.setOnClickListener(this)
-        deviceImgView?.setOnClickListener(this)
         returnView?.setOnClickListener(this)
         cancelView?.setOnClickListener(this)
-//        findViewById<View>(android.R.id.content).setOnTouchListener { _, _ ->
-//            resetTimer()
-//            true
-//        }
     }
 
     private fun initWatch() {
@@ -200,29 +191,21 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         val mac = MyDeviceUtils.getMacAddress()
         RetrofitManager.instance.setWuHanUserName(mac)
         // 接口测试
-        RetrofitManager.instance.setWuHanPassWord("17923345")
-        //RetrofitManager.instance.setWuHanPassWord("40399636")
-        RetrofitManager.instance.toLogin()
-//        val code = prefManager?.bindKey
-//        if (prefManager?.isBound == true && code != null) {
-//            RetrofitManager.instance.setWuHanPassWord(code)
-//            RetrofitManager.instance.toLogin()
-//        }
+        //RetrofitManager.instance.setWuHanPassWord("17923345")
+        //RetrofitManager.instance.toLogin()
+        val code = prefManager?.bindKey
+        if (prefManager?.isBound == true && code != null) {
+            RetrofitManager.instance.setWuHanPassWord(code)
+            RetrofitManager.instance.toLogin()
+        }
     }
 
     private fun initView() {
         Log.d(TAG, "initView start")
         timeTextView = findViewById(R.id.timeTextView)
-        welcomeSmile = findViewById(R.id.welcome_smile)
-        welcomeWords = findViewById(R.id.welcome_words)
-        enterPassword = findViewById(R.id.enter_password)
-        deviceImgView = findViewById(R.id.device_image)
         returnView = findViewById(R.id.return_img)
         cancelView = findViewById(R.id.cancel_img)
         myRobotText = findViewById(R.id.my_robot)
-
-//        returnView?.visibility = View.INVISIBLE
-//        myRobotText?.visibility = View.INVISIBLE
 
 //        prefManager = PrefManager(this)
 //        if (prefManager!!.isFirstTimeLaunch && prefManager?.bindKey == null) {
@@ -239,20 +222,11 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     override fun onClick(view: View?) {
         Log.d(TAG, "---onClick id---" + view?.id)
         when (view?.id) {
-            R.id.enter_password -> {
-                Log.d(TAG, "---enter_password---")
-                //updateFragment(ConstantLogic.MSG_TYPE_LOGIN)
-                RetrofitManager.instance.getRobots()
-            }
-            R.id.button_got_it -> {
-
-            }
-            R.id.device_image -> {
-                updateFragment(ConstantLogic.MSG_TYPE_POINT, null)
-            }
             R.id.return_img -> {
                 if (currentfragment is PointFragment) {
                     showHome()
+                } else if (currentfragment is BindingFragment) {
+                    showWelcome()
                 }
             }
             R.id.cancel_img -> {
@@ -265,7 +239,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
         // 捕捉所有触摸事件
-        resetTimer()
+        if (!(currentfragment is WelcomeFragment || currentfragment is BindingFragment)) {
+            resetTimer()
+        }
         return super.dispatchTouchEvent(ev)
     }
 
@@ -335,9 +311,10 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         if (type == ConstantLogic.MSG_TYPE_HOME
             || type == ConstantLogic.MSG_TYPE_AREA
             || type == ConstantLogic.MSG_TYPE_POINT
-            || type == ConstantLogic.MSG_TYPE_LOGIN
+            || type == ConstantLogic.MSG_TYPE_BIND
             || type == ConstantLogic.MSG_TYPE_SETTING
             || type == ConstantLogic.MSG_TYPE_HEADING
+            || type == ConstantLogic.MSG_TYPE_WELCOME
             ) {
             binding.containerMain.visibility = View.VISIBLE
             containerView = binding.containerMain
@@ -359,7 +336,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 returnView?.visibility = View.GONE
                 cancelView?.visibility = View.GONE
             }
-            ConstantLogic.MSG_TYPE_POINT, ConstantLogic.MSG_TYPE_LOGIN -> {
+            ConstantLogic.MSG_TYPE_POINT, ConstantLogic.MSG_TYPE_BIND -> {
                 timeTextView?.visibility = View.VISIBLE
                 myRobotText?.visibility = View.GONE
                 returnView?.visibility = View.VISIBLE

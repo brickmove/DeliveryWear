@@ -5,16 +5,12 @@
     android:layout_height="match_parent"
     android:background="@color/black">
 
-    <include
-        layout="@layout/time_layout" />
-
     <ImageView
         android:id="@+id/welcome_smile"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_centerHorizontal="true"
         android:layout_marginStart="92dp"
-        android:layout_marginTop="40dp"
         android:src="@mipmap/welcome_smile"/>
 
     <TextView
@@ -22,7 +18,7 @@
         android:layout_width="181.82dp"
         android:layout_height="52dp"
         android:layout_marginStart="29dp"
-        android:layout_marginTop="104dp"
+        android:layout_marginTop="64dp"
         android:gravity="center"
         android:text="@string/Welcome"
         android:textColor="#FFB500"
@@ -36,7 +32,7 @@
         android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="168dp"
+        android:layout_marginTop="128dp"
         app:cardBackgroundColor="@color/yellow"
         app:cardCornerRadius="19.39dp">
 

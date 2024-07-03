@@ -28,7 +28,7 @@ object FragmentFactory {
         fragment = when (fragmentType) {
             ConstantLogic.MSG_TYPE_WELCOME -> WelcomeFragment()
             ConstantLogic.MSG_TYPE_STANDBY -> StandbyFragment()
-            ConstantLogic.MSG_TYPE_LOGIN -> LoginFragment()
+            ConstantLogic.MSG_TYPE_BIND -> BindingFragment()
             ConstantLogic.MSG_TYPE_HOME -> HomeFragment()
             ConstantLogic.MSG_TYPE_POINT -> PointFragment()
             ConstantLogic.MSG_TYPE_HEADING -> HeadingFragment()

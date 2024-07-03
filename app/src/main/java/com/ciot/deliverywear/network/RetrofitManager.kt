@@ -283,6 +283,10 @@ class RetrofitManager {
             })
     }
 
+    fun firstLogin(): Observable<ResponseBody> {
+        return getWuHanApiService().login(getUserRequestBody(true))
+    }
+
     private fun getOkHttpClient(): OkHttpClient {
         return getOkHttpClient(TAG)
     }
@@ -371,7 +375,7 @@ class RetrofitManager {
         return requestBody
     }
 
-    private fun parseLoginResponseBody(loginResponseBody: ResponseBody): Boolean {
+    fun parseLoginResponseBody(loginResponseBody: ResponseBody): Boolean {
         var token = ""
         var projectId = ""
         //登录成功后拿到token

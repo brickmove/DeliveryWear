@@ -7,14 +7,6 @@
     android:background="@android:color/black"
     tools:context=".ui.MainActivity">
 
-    <include
-        android:id="@+id/head_view"
-        layout="@layout/time_layout"
-        app:layout_constraintTop_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <androidx.gridlayout.widget.GridLayout
         android:id="@+id/gridLayout"
         android:layout_width="208dp"
@@ -25,7 +17,7 @@
         app:alignmentMode="alignMargins"
         app:columnCount="3"
         app:rowCount="6"
-        app:layout_constraintTop_toBottomOf="@+id/head_view"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" >
 
         <RelativeLayout
@@ -36,10 +28,22 @@
 
             <androidx.appcompat.widget.AppCompatEditText
                 android:id="@+id/tv_enter_password"
+                style="@style/enter_pwd_num"
                 android:layout_width="match_parent"
                 android:layout_height="32dp"
-                style="@style/enter_pwd_num"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
                 android:gravity="center_horizontal|center_vertical"
+                android:textSize="14sp"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/ed_hint"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:gravity="center_horizontal|center_vertical"
+                style="@style/enter_pwd_num"
+                android:layout_centerHorizontal="true"
                 android:text="@string/pls_enter_pwd"
                 android:textSize="14sp" />
 
@@ -50,9 +54,8 @@
                 android:layout_marginStart="180dp"
                 android:layout_marginTop="4dp"
                 android:src="@mipmap/clear_img"
-                android:visibility="invisible" />
+                android:visibility="gone" />
         </RelativeLayout>
-
 
         <!-- Add buttons 1-9 and 0 programmatically -->
         <Button
@@ -158,5 +161,23 @@
 
     </androidx.gridlayout.widget.GridLayout>
 
+    <TextView
+        android:id="@+id/error_pwd_hint"
+        style="@style/error_pwd_hint"
+        android:layout_width="208dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="140dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="64dp"
+        android:fontFamily="@font/lexend_medium"
+        android:gravity="center"
+        android:text="@string/error_pwd_hint"
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

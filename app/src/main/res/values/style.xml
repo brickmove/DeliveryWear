@@ -40,4 +40,9 @@
         <item name="android:textColor">@color/white</item>
         <item name="android:fontFamily">@font/lexend_medium</item>
     </style>
+    <style name="error_pwd_hint">
+        <item name="android:background">@drawable/error_pwd_hint_background</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:fontFamily">@font/lexend_medium</item>
+    </style>
 </resources>
