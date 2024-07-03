@@ -208,9 +208,9 @@ class RetrofitManager {
         val jsonObject = JsonObject();
         jsonObject.addProperty("id", id)
         jsonObject.addProperty("positionName", positionName)
-//        jsonObject.addProperty("z", z)
-//        jsonObject.addProperty("flag", flag)
-//        jsonObject.addProperty("mapinfo", mapinfo)
+        jsonObject.addProperty("z", "")
+        jsonObject.addProperty("flag", "")
+        jsonObject.addProperty("mapinfo", "")
         val body = jsonObject.toString()
             .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
         getWuHanApiService().singlePointNavigate(body, token)
@@ -238,6 +238,21 @@ class RetrofitManager {
                 override fun onComplete() {
                 }
             })
+    }
+
+    fun navPoint(id: String, positionName: String): Observable<ResponseBody>? {
+        val token = getToken()
+        if (token.isNullOrEmpty()) {
+            return null
+        }
+        val jsonObject = JsonObject();
+        jsonObject.addProperty("id", id)
+        jsonObject.addProperty("positionName", positionName)
+        jsonObject.addProperty("z", "")
+        jsonObject.addProperty("flag", "")
+        jsonObject.addProperty("mapinfo", "")
+        val body = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        return getWuHanApiService().singlePointNavigate(body, token)
     }
 
     @SuppressLint("All")

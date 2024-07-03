@@ -22,6 +22,7 @@ import com.ciot.deliverywear.databinding.*
 import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.fragment.FragmentFactory
+import com.ciot.deliverywear.ui.fragment.HeadingFragment
 import com.ciot.deliverywear.ui.fragment.HomeFragment
 import com.ciot.deliverywear.ui.fragment.PointFragment
 import com.ciot.deliverywear.ui.fragment.StandbyFragment
@@ -106,8 +107,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         Log.d(TAG, "MainActivity showStandby >>>>>>>>>")
         val dealResult = DealResult()
         dealResult.type = ConstantLogic.MSG_TYPE_STANDBY
-        updateFragment(ConstantLogic.MSG_TYPE_HEADING, dealResult)
-        //updateFragment(ConstantLogic.MSG_TYPE_STANDBY, dealResult)
+        updateFragment(ConstantLogic.MSG_TYPE_STANDBY, dealResult)
     }
 
     fun showHome() {
@@ -188,6 +188,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         enterPassword?.setOnClickListener(this)
         deviceImgView?.setOnClickListener(this)
         returnView?.setOnClickListener(this)
+        cancelView?.setOnClickListener(this)
 //        findViewById<View>(android.R.id.content).setOnTouchListener { _, _ ->
 //            resetTimer()
 //            true
@@ -254,6 +255,11 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                     showHome()
                 }
             }
+            R.id.cancel_img -> {
+                if (currentfragment is HeadingFragment) {
+                    showHome()
+                }
+            }
         }
     }
 
@@ -262,6 +268,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         resetTimer()
         return super.dispatchTouchEvent(ev)
     }
+
     private fun resetTimer() {
         // 重置计时器
         handler.removeCallbacks(standbyRunnable)

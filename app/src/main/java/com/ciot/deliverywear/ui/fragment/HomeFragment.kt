@@ -142,6 +142,13 @@ class HomeFragment: BaseFragment() {
         }
     }
 
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (hidden){
+            onUnsubscribe()
+        }
+    }
+
     fun onUnsubscribe() {
         mRobotDisposable?.clear()
     }

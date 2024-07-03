@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">DeliveryWear</string>
     <string name="Welcome">Welcome to RoboLink Watch</string>
     <string name="enter_pwd">Enter password</string>
@@ -13,6 +13,7 @@
     <string name="robot_status2">Shutdown</string>
     <string name="summon">SUMMON</string>
     <string name="point_name">A101</string>
+    <string name="area_name">Area-A</string>
     <string name="num0">0</string>
     <string name="num1">1</string>
     <string name="num2">2</string>
@@ -27,6 +28,7 @@
     <string name="loading">Loading…</string>
     <string name="no_robot">Oops, Your Project Has No Robots Bound To It！</string>
     <string name="heading">Heading To A101</string>
+    <string name="arriving">Arriving To A101</string>
     <string name="heading_item">Close Page In 5s</string>
-    <string name="heading_cancel">CANCEL</string>
+    <string name="heading_cancel" tools:ignore="ButtonCase">CANCEL</string>
 </resources>

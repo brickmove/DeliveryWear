@@ -53,7 +53,11 @@ class HeadingFragment : BaseFragment() {
     private fun initListener() {
         // 点击取消后返回上一页
         headingCancel?.setOnClickListener{
-            (activity as MainActivity).showNav(localRobot)
+            if (localRobot.isEmpty()) {
+                (activity as MainActivity).showHome()
+            } else {
+                (activity as MainActivity).showNav(localRobot)
+            }
         }
     }
 
@@ -68,6 +72,16 @@ class HeadingFragment : BaseFragment() {
             return
         }
         localRobot = data.selectRobotId.toString()
-        headingText?.text = "Heading To " + data.selectPoint
+        val navInfo = data.navInfo
+        headingText?.text = navInfo + data.selectPoint
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (hidden){
+            countdownTimer?.cancel()
+        } else {
+            countdownTimer?.start()
+        }
     }
 }
