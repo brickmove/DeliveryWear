@@ -16,15 +16,19 @@ import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.R
 import com.ciot.deliverywear.bean.DealResult
 import com.ciot.deliverywear.bean.NavPointResponse
+import com.ciot.deliverywear.bean.RobotAllResponse
 import com.ciot.deliverywear.constant.ConstantLogic
+import com.ciot.deliverywear.constant.HttpConstant
 import com.ciot.deliverywear.databinding.ActivityMainBinding
 import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.ui.base.BaseFragment
+import com.ciot.deliverywear.ui.dialog.LoadingDialog
 import com.ciot.deliverywear.ui.fragment.BindingFragment
 import com.ciot.deliverywear.ui.fragment.FragmentFactory
 import com.ciot.deliverywear.ui.fragment.HeadingFragment
 import com.ciot.deliverywear.ui.fragment.HomeFragment
 import com.ciot.deliverywear.ui.fragment.PointFragment
+import com.ciot.deliverywear.ui.fragment.SettingFragment
 import com.ciot.deliverywear.ui.fragment.StandbyFragment
 import com.ciot.deliverywear.ui.fragment.WelcomeFragment
 import com.ciot.deliverywear.utils.ContextUtil
@@ -35,6 +39,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import okhttp3.ResponseBody
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -60,6 +65,12 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         disposable?.let { mCompositeDisposable!!.add(disposable) }
     }
 
+    fun setBindInfo(key: String) {
+        Log.d(TAG, "setBindInfo key: $key")
+        prefManager?.bindKey = key
+        prefManager?.isBound = true
+    }
+
     private lateinit var binding: ActivityMainBinding
     private var timeTextView: TextView? = null
     private var returnView: ImageView? = null
@@ -70,6 +81,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "MainActivity onCreate start")
+        prefManager = PrefManager(this)
         window.setFlags(
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
@@ -81,22 +93,29 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        initWatch()
         initView()
+        initWatch()
         getCurTime()
     }
 
     override fun onResume() {
         super.onResume()
         initListener()
+        initData()
         Log.d(TAG, "prefManager.bindKey: " + prefManager?.bindKey)
-        if (prefManager?.bindKey.isNullOrEmpty()) {
+        if (prefManager?.bindKey.isNullOrEmpty() || prefManager?.isBound == false) {
             showWelcome()
-        } else {
-            initAnimation()
-            resetTimer()
         }
     }
+
+    private fun initData() {
+        prefManager?.bindServer = HttpConstant.DEFAULT_SERVICE_URL
+    }
+
+    fun getBindServer(): String? {
+        return prefManager?.bindServer
+    }
+
     private fun showStandby() {
         if (currentfragment is StandbyFragment) {
             return
@@ -111,12 +130,35 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         if (currentfragment is HomeFragment) {
             return
         }
+        //showLoadingDialog()
         Log.d(TAG, "MainActivity showHome >>>>>>>>>")
-        val dealResult = DealResult()
-        dealResult.type = ConstantLogic.MSG_TYPE_HOME
-        dealResult.robotInfoList = RetrofitManager.instance.getRobotData()
-        Log.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
-        updateFragment(ConstantLogic.MSG_TYPE_HOME, dealResult)
+        RetrofitManager.instance.getRobotsForHome()
+            ?.subscribeOn(Schedulers.io())
+            ?.observeOn(AndroidSchedulers.mainThread())
+            ?.subscribe(object:Observer<RobotAllResponse>{
+                override fun onSubscribe(d: Disposable) {
+                    addSubscription(d)
+                }
+
+                override fun onNext(body: RobotAllResponse) {
+                    Log.d(TAG, "RobotAllResponse: " + GsonUtils.toJson(body))
+                    RetrofitManager.instance.parseRobotAllResponseBody(body)
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.w(TAG,"onError: ${e.message}")
+                }
+
+                override fun onComplete() {
+                    val dealResult = DealResult()
+                    dealResult.type = ConstantLogic.MSG_TYPE_HOME
+                    dealResult.robotInfoList = RetrofitManager.instance.getRobotData()
+                    Log.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
+                    //dismissLoadingDialog()
+                    updateFragment(ConstantLogic.MSG_TYPE_HOME, dealResult)
+                    resetTimer()
+                }
+            })
     }
 
     fun showNav(robotId: String) {
@@ -152,32 +194,19 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         updateFragment(ConstantLogic.MSG_TYPE_WELCOME, null)
     }
 
-    private fun initAnimation() {
-        if (!RetrofitManager.instance.getIsLoading()!!) {
-            showLoadingView()
-            Handler().postDelayed({
-                // 数据加载完成后隐藏加载布局，显示主要内容的部分
-                hideLoadingView()
-                RetrofitManager.instance.setIsLoading(true)
-                showHome()
-            }, 1000) // 数据加载延迟
-        } else {
-            showHome()
+    // 加载动画弹窗
+    private var mLoadingDialog: LoadingDialog? = null
+    private fun showLoadingDialog() {
+        if (mLoadingDialog?.dialog?.isShowing != true) {
+            mLoadingDialog = LoadingDialog()
+            mLoadingDialog?.show(supportFragmentManager, "ScanLoadingDialog")
+            Log.d(TAG,"showLoadingDialog>>>>>>")
         }
     }
-
-    private fun showLoadingView() {
-        Log.d(TAG, "MainActivity showLoadingView")
-        binding.loadingView.loadingLayout.visibility = View.VISIBLE
-        binding.headView.timeTextView.visibility = View.GONE
-        binding.headView.myRobot.visibility = View.GONE
-    }
-
-    private fun hideLoadingView() {
-        Log.d(TAG, "MainActivity hideLoadingView")
-        binding.loadingView.loadingLayout.visibility = View.GONE
-        binding.headView.timeTextView.visibility = View.VISIBLE
-        binding.headView.myRobot.visibility = View.VISIBLE
+    private fun dismissLoadingDialog() {
+        if (mLoadingDialog?.dialog?.isShowing == true) {
+            mLoadingDialog?.dismiss()
+        }
     }
 
     private fun initListener() {
@@ -190,13 +219,30 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         Log.d(TAG, "initWatch start")
         val mac = MyDeviceUtils.getMacAddress()
         RetrofitManager.instance.setWuHanUserName(mac)
-        // 接口测试
-        //RetrofitManager.instance.setWuHanPassWord("17923345")
-        //RetrofitManager.instance.toLogin()
         val code = prefManager?.bindKey
         if (prefManager?.isBound == true && code != null) {
+            //showLoadingDialog()
             RetrofitManager.instance.setWuHanPassWord(code)
-            RetrofitManager.instance.toLogin()
+            RetrofitManager.instance.firstLogin()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(object : Observer<ResponseBody> {
+                    override fun onSubscribe(d: Disposable) {
+                        addSubscription(d)
+                    }
+
+                    override fun onNext(body: ResponseBody) {
+                        RetrofitManager.instance.parseLoginResponseBody(body)
+                    }
+
+                    override fun onError(e: Throwable) {
+                        Log.w(TAG,"initWatch onError: ${e.message}")
+                    }
+
+                    override fun onComplete() {
+                        showHome()
+                    }
+                })
         }
     }
 
@@ -206,24 +252,12 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         returnView = findViewById(R.id.return_img)
         cancelView = findViewById(R.id.cancel_img)
         myRobotText = findViewById(R.id.my_robot)
-
-//        prefManager = PrefManager(this)
-//        if (prefManager!!.isFirstTimeLaunch && prefManager?.bindKey == null) {
-//            setContentView(R.layout.fragment_welcome)
-//            prefManager!!.isFirstTimeLaunch = false
-//        } else {
-//            if (prefManager!!.isBound) {
-//                setContentView(R.layout.fragment_home)
-//            } else {
-//                setContentView(R.layout.fragment_welcome)
-//            }
-//        }
     }
+
     override fun onClick(view: View?) {
-        Log.d(TAG, "---onClick id---" + view?.id)
         when (view?.id) {
             R.id.return_img -> {
-                if (currentfragment is PointFragment) {
+                if (currentfragment is PointFragment || currentfragment is SettingFragment) {
                     showHome()
                 } else if (currentfragment is BindingFragment) {
                     showWelcome()
@@ -274,9 +308,11 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     override fun onDestroy() {
         super.onDestroy()
         ContextUtil.clearContext()
+        FragmentFactory.clearCache()
         onUnsubscribe()
         handler.removeCallbacks(standbyRunnable)
         curTimeHandler.removeCallbacksAndMessages(null)
+        dismissLoadingDialog()
     }
 
     fun updateFragment(type: Int, result: DealResult?) {
@@ -336,7 +372,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 returnView?.visibility = View.GONE
                 cancelView?.visibility = View.GONE
             }
-            ConstantLogic.MSG_TYPE_POINT, ConstantLogic.MSG_TYPE_BIND -> {
+            ConstantLogic.MSG_TYPE_POINT,
+            ConstantLogic.MSG_TYPE_BIND,
+            ConstantLogic.MSG_TYPE_SETTING-> {
                 timeTextView?.visibility = View.VISIBLE
                 myRobotText?.visibility = View.GONE
                 returnView?.visibility = View.VISIBLE

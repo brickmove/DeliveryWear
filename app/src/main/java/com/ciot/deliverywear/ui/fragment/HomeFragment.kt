@@ -54,7 +54,16 @@ class HomeFragment: BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initListener()
     }
+
+    private fun initListener() {
+        settingButton?.setOnClickListener{
+            val dealResult = DealResult()
+            (activity as MainActivity).updateFragment(ConstantLogic.MSG_TYPE_SETTING, dealResult)
+        }
+    }
+
 
     @Deprecated("Deprecated in Java")
     override fun onActivityCreated(savedInstanceState: Bundle?) {

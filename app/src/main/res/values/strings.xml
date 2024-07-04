@@ -6,6 +6,8 @@
     <string name="time_standby">03:34</string>
     <string name="date_standby">Oct 9, 2023</string>
     <string name="pls_enter_pwd">Please enter password</string>
+    <string name="binding_success">Binding Successful</string>
+    <string name="entering_project">Entering Project In 3s</string>
     <string name="my_robot">My Robot</string>
     <string name="robot_id">YH12345667787979786755645442</string>
     <string name="robot_battery">60%</string>
@@ -24,8 +26,14 @@
     <string name="num7">7</string>
     <string name="num8">8</string>
     <string name="num9">9</string>
+    <string name="settings">Settings</string>
+    <string name="project">Project</string>
+    <string name="gateway">Gateway</string>
+    <string name="gateway_address">https://robot.csstrobot.com:8443</string>
+    <string name="project_name">Kedo Chinese Restaurant</string>
     <string name="got_it">GOT IT</string>
     <string name="loading">Loading…</string>
+    <string name="wait_a_moment">Wait A Moment…</string>
     <string name="no_robot">Oops, Your Project Has No Robots Bound To It！</string>
     <string name="error_pwd_hint">Incorrect password</string>
     <string name="heading">Heading To A101</string>

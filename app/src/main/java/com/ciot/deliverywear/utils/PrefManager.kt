@@ -11,6 +11,7 @@ class PrefManager(context: Context) {
 
     companion object {
         private const val BIND_KEY = "bindKey"
+        private const val BIND_SERVER = "bindServer"
         private const val PREF_NAME = "bind_pref"
         private const val IS_BOUND = "isBound"
         private const val IS_FIRST_TIME_LAUNCH = "isFirstTimeLaunch"
@@ -65,6 +66,28 @@ class PrefManager(context: Context) {
 
             if (!success) {
                 Log.e(TAG, "Failed to set bind key after $MAX_RETRIES attempts")
+            }
+        }
+
+    var bindServer: String?
+        get() = pref.getString(BIND_SERVER, null)
+        set(value) {
+            var success = false
+            var attempts = 0
+
+            while (!success && attempts < MAX_RETRIES) {
+                editor.putString(BIND_SERVER, value)
+                success = editor.commit()
+                if (success) {
+                    Log.d(TAG, "Set bind server to $value successfully")
+                } else {
+                    Log.d(TAG, "Failed to set bind server to $value. Attempt ${attempts + 1} of $MAX_RETRIES")
+                }
+                attempts++
+            }
+
+            if (!success) {
+                Log.e(TAG, "Failed to set bind server after $MAX_RETRIES attempts")
             }
         }
 }

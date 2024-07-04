@@ -45,4 +45,7 @@
         <item name="android:textColor">@color/white</item>
         <item name="android:fontFamily">@font/lexend_medium</item>
     </style>
+    <style name="YellowProgressBar" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminateTint">@color/yellow</item>
+    </style>
 </resources>

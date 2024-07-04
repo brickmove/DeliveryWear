@@ -49,6 +49,7 @@ class RetrofitManager {
     private var mToken: AtomicReference<String> = AtomicReference()
     private var mUserId: AtomicReference<String> = AtomicReference()
     private var mProjectId: AtomicReference<String> = AtomicReference()
+    private var mProjectName: AtomicReference<String> = AtomicReference()
     private var isLoadingSuccess: AtomicReference<Boolean> = AtomicReference(false)
     @Volatile
     private var mRobotId: MutableList<String>? = mutableListOf()
@@ -121,7 +122,20 @@ class RetrofitManager {
             })
     }
 
-    private fun parseRobotAllResponseBody(body: RobotAllResponse) {
+    fun getRobotsForHome() : Observable<RobotAllResponse>? {
+        val token = getToken()
+        val project = getProject()
+        if (token.isNullOrEmpty() || project.isNullOrEmpty()) {
+            Log.e(TAG, "getRobotsForHome param err--->token: $token, project: $project")
+            return null
+        }
+        val start ="0"
+        val limit ="100"
+        Log.d(TAG, "getRobotsForHome param--->token: $token, project: $project")
+        return getWuHanApiService().findRobotByProject(token, project, start, limit)
+    }
+
+    fun parseRobotAllResponseBody(body: RobotAllResponse) {
         val res: RobotAllResponse = body
         val total: Int? = res.total
         val robotInfo: List<RobotInfoResponse>? = res.datas
@@ -278,7 +292,7 @@ class RetrofitManager {
                 }
 
                 override fun onComplete() {
-                    getRobots()
+
                 }
             })
     }
@@ -378,6 +392,7 @@ class RetrofitManager {
     fun parseLoginResponseBody(loginResponseBody: ResponseBody): Boolean {
         var token = ""
         var projectId = ""
+        var projectName = ""
         //登录成功后拿到token
         try {
             val json = String(loginResponseBody.bytes())
@@ -388,6 +403,7 @@ class RetrofitManager {
             projectId = obj.getString("projectId")
             val userId = obj.getString("user")
             setUserId(userId)
+            projectName = obj.getString("name")
             // 设置token过期时长
             val timeOut = obj.getLong("timeout") * 1000
             val createTime = obj.getLong("createtime")
@@ -402,7 +418,8 @@ class RetrofitManager {
         }
         setToken(token)
         setProject(projectId)
-        Log.w(TAG, "requestWuHanLogin getToken:${getToken()}")
+        setProjectName(projectName)
+        Log.w(TAG, "requestWuHanLogin getToken:${getToken()}, getProject:${getProject()}, getProjectName:${getProjectName()}")
         return true
     }
 
@@ -412,6 +429,14 @@ class RetrofitManager {
      */
     private fun setTokenInvalidTime(tokenInvalidTime: Long) {
         mTokenInvalidTime.set(tokenInvalidTime)
+    }
+
+    private fun setProjectName(projectName: String?) {
+        mProjectName.set(projectName)
+    }
+
+    fun getProjectName(): String? {
+        return mProjectName.get()
     }
 
     private fun setProject(projectId: String?) {
@@ -496,7 +521,7 @@ class RetrofitManager {
         return isLoadingSuccess.get()
     }
 
-    fun onUnsubscribe() {
+    private fun onUnsubscribe() {
         if (mCompositeDisposable != null) {
             mCompositeDisposable!!.clear()
         }

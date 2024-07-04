@@ -22,7 +22,9 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import com.ciot.deliverywear.R
 import com.ciot.deliverywear.network.RetrofitManager
+import com.ciot.deliverywear.ui.MainActivity
 import com.ciot.deliverywear.ui.base.BaseFragment
+import com.ciot.deliverywear.ui.dialog.BindingSuccessDialog
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -172,20 +174,39 @@ class BindingFragment : BaseFragment() {
 
                         override fun onNext(body: ResponseBody) {
                             RetrofitManager.instance.parseLoginResponseBody(body)
+                            showSuccessDialog()
+                            (activity as MainActivity).setBindInfo(editTextView!!.text.toString())
                         }
 
                         override fun onError(e: Throwable) {
                             Log.w(TAG,"登录失败 onError: ${e.message}")
                             errorHint?.visibility = View.VISIBLE
                             shake?.start()
+                            if (editTextView?.text?.length == 8) {
+                                editTextView?.setTextColor(ContextCompat.getColor(activity?.applicationContext!!, R.color.state_red))
+                            }
                         }
 
                         override fun onComplete() {
-                            RetrofitManager.instance.getRobots()
+
                         }
                     })
-
             }
+        }
+    }
+
+    // 绑定成功弹窗
+    private var mBindingSuccessDialog: BindingSuccessDialog? = null
+    private fun showSuccessDialog() {
+        if (mBindingSuccessDialog?.dialog?.isShowing != true) {
+            mBindingSuccessDialog = BindingSuccessDialog()
+            mBindingSuccessDialog?.show(childFragmentManager, "ScanBindingSuccessDialog")
+            Log.d(TAG,"showSuccessDialog>>>>>>")
+        }
+    }
+    private fun dismissSuccessDialog() {
+        if (mBindingSuccessDialog?.dialog?.isShowing == true) {
+            mBindingSuccessDialog?.dismiss()
         }
     }
 
@@ -221,6 +242,7 @@ class BindingFragment : BaseFragment() {
                 if (editTextView?.text?.length!! < 8) {
                     gotItButton?.background = gotItDrawable2
                     gotItButton?.setTextColor(ContextCompat.getColor(activity?.applicationContext!!, R.color.default_got_it))
+                    editTextView?.setTextColor(ContextCompat.getColor(activity?.applicationContext!!, R.color.white))
                 }
             }
         }
@@ -228,21 +250,26 @@ class BindingFragment : BaseFragment() {
 
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        initViewData()
-        isEdit = false
-        countdownTimer?.cancel()
+        if (hidden) {
+            onUnsubscribe()
+            initViewData()
+            isEdit = false
+            countdownTimer?.cancel()
+            dismissSuccessDialog()
+        }
     }
 
     private fun initViewData() {
         editHint?.visibility = View.VISIBLE
         editTextView?.setText("")
         editTextView?.visibility = View.GONE
+        editTextView?.setTextColor(ContextCompat.getColor(activity?.applicationContext!!, R.color.white))
         btnClear?.visibility = View.GONE
         gotItButton?.background = gotItDrawable2
         gotItButton?.setTextColor(ContextCompat.getColor(activity?.applicationContext!!, R.color.default_got_it))
     }
 
-    fun onUnsubscribe() {
+    private fun onUnsubscribe() {
         mLoginDisposable?.clear()
     }
 

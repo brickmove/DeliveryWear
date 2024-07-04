@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/setting"
+    android:background="@android:color/black"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/setting_tv"
+        android:layout_width="match_parent"
+        android:layout_height="22dp"
+        android:layout_marginStart="16dp"
+        android:fontFamily="@font/lexend_medium"
+        android:text="@string/settings"
+        android:textColor="@color/white"
+        android:textSize="16sp" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/setting_project"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="27dp"
+        app:cardBackgroundColor="@color/robot_card_bc"
+        app:cardCornerRadius="20dp">
+
+        <TextView
+            android:layout_width="182dp"
+            android:layout_height="22dp"
+            android:text="@string/project"
+            android:fontFamily="@font/lexend_400"
+            android:textColor="@color/white"
+            android:layout_marginStart="14dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="8dp"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/setting_project_name"
+            android:layout_width="182dp"
+            android:layout_height="15dp"
+            android:text="@string/project_name"
+            android:fontFamily="@font/lexend_400"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginStart="14dp"
+            android:layout_marginTop="36dp"
+            android:layout_marginBottom="14dp" />
+
+    </androidx.cardview.widget.CardView>
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/setting_gateway"
+        android:layout_width="match_parent"
+        android:layout_height="76dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="101dp"
+        app:cardBackgroundColor="@color/robot_card_bc"
+        app:cardCornerRadius="20dp">
+
+        <TextView
+            android:layout_width="182dp"
+            android:layout_height="22dp"
+            android:text="@string/gateway"
+            android:fontFamily="@font/lexend_medium"
+            android:textColor="@color/white"
+            android:layout_marginStart="14dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="8dp"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/setting_gateway_name"
+            android:layout_width="wrap_content"
+            android:layout_height="29dp"
+            android:text="@string/gateway_address"
+            android:fontFamily="@font/lexend_medium"
+            android:textColor="@color/white"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textSize="12sp"
+            android:layout_marginStart="14dp"
+            android:layout_marginTop="36dp"
+            android:layout_marginBottom="14dp" />
+
+    </androidx.cardview.widget.CardView>
+
+</RelativeLayout>

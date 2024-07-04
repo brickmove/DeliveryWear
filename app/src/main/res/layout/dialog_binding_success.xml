@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@drawable/dialog_background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="64dp"
+        android:layout_centerHorizontal="true"
+        android:src="@mipmap/welcome_smile"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:layout_marginTop="128dp"
+        android:gravity="center"
+        android:text="@string/binding_success"
+        android:textColor="#FFB500"
+        android:fontFamily="@font/lexend_medium"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/enter_project_in"
+        android:layout_width="match_parent"
+        android:layout_height="19dp"
+        android:layout_marginTop="162dp"
+        android:fontFamily="@font/lexend_medium"
+        android:gravity="center"
+        android:text="@string/entering_project"
+        android:alpha="0.5"
+        android:textColor="@color/white"
+        android:textSize="14sp" />
+</RelativeLayout>

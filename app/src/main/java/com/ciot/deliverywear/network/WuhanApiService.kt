@@ -1,12 +1,15 @@
 package com.ciot.deliverywear.network
 import com.ciot.deliverywear.bean.NavPointResponse
 import com.ciot.deliverywear.bean.RobotAllResponse
-import com.ciot.deliverywear.bean.RobotInfoResponse
 import io.reactivex.Observable
 import me.jessyan.retrofiturlmanager.RetrofitUrlManager
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Headers
+import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface WuhanApiService {
     /*登录*/
