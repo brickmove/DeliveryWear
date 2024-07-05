@@ -15,7 +15,7 @@ class LoadingDialog : DialogFragment() {
     private var countdownTimer: CountDownTimer? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val view = LayoutInflater.from(context).inflate(R.layout.loading_layout, container, false)
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_loading, container, false)
         initView(view)
         return view
     }

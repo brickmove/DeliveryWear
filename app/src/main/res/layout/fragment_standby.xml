@@ -37,5 +37,5 @@
         android:layout_marginStart="84dp"
         android:layout_alignParentTop="true"
         android:layout_marginTop="177dp"
-        android:src="@mipmap/device_image"/>
+        android:src="@mipmap/device_img"/>
 </RelativeLayout>

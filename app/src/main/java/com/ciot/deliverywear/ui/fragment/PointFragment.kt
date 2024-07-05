@@ -27,7 +27,6 @@ import io.reactivex.schedulers.Schedulers
 import okhttp3.ResponseBody
 import org.json.JSONObject
 
-// 登录页面
 class PointFragment : BaseFragment() {
     companion object {
         private const val TAG = "PointFragment"
@@ -64,6 +63,7 @@ class PointFragment : BaseFragment() {
             Log.d(TAG, "click summon button, position: $pointName")
             if (selectRobot?.isNotEmpty() == true && pointName?.isNotEmpty() == true) {
                 pointName.let { it1 ->
+                    Log.d(TAG, "selectRobot: $selectRobot, pointName: $pointName")
                     RetrofitManager.instance.navPoint(selectRobot!!, it1)
                         ?.subscribeOn(Schedulers.io())
                         ?.observeOn(AndroidSchedulers.mainThread())
@@ -73,9 +73,9 @@ class PointFragment : BaseFragment() {
                             }
 
                             override fun onNext(body: ResponseBody) {
-                                val json = String(body.bytes())
-                                val res = JSONObject(json).getJSONObject("result")
-                                Log.d(TAG, "navigatePoint result:$res")
+//                                val json = String(body.bytes())
+//                                val res = JSONObject(json).getJSONObject("result")
+//                                Log.d(TAG, "navigatePoint result:$res")
                                 val dealResult = DealResult()
                                 dealResult.selectPoint = it1
                                 dealResult.navInfo = "Heading To "

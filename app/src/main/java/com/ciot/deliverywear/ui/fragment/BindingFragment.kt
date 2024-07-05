@@ -175,7 +175,7 @@ class BindingFragment : BaseFragment() {
                         override fun onNext(body: ResponseBody) {
                             RetrofitManager.instance.parseLoginResponseBody(body)
                             showSuccessDialog()
-                            (activity as MainActivity).setBindInfo(editTextView!!.text.toString())
+                            (activity as MainActivity).setBindInfo(editTextView!!.text.toString(), RetrofitManager.instance.getDefaultServer())
                         }
 
                         override fun onError(e: Throwable) {

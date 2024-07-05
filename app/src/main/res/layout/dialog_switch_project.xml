@@ -1,0 +1,51 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/switch_layout"
+    android:background="@drawable/dialog_background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="64dp"
+        android:layout_centerHorizontal="true"
+        android:src="@mipmap/hint_img"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="128dp"
+        android:gravity="center"
+        android:text="@string/switch_project"
+        android:textColor="@color/yellow"
+        android:fontFamily="@font/lexend_medium"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/switch_yes"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="188dp"
+        android:layout_marginStart="16dp"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:fontFamily="@font/lexend_medium"
+        android:textColor="@color/black"
+        android:background="@drawable/yes_background"
+        android:text="@string/yes"
+        />
+
+    <TextView
+        android:id="@+id/switch_no"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="188dp"
+        android:layout_marginStart="123dp"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:fontFamily="@font/lexend_medium"
+        android:textColor="@color/black"
+        android:background="@drawable/no_background"
+        android:text="@string/no"
+        />
+</RelativeLayout>

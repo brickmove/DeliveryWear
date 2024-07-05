@@ -6,8 +6,17 @@ object HttpConstant {
     const val HTTP_URL = "http://"
     const val DEFAULT_TIMEOUT: Long = 60
     // 平台地址
-    const val IP: String = "dev.csstrobot.com"
-    val DEFAULT_SERVICE_URL = "http://$IP:9899/"
+    private const val IP_DEV: String = "dev.csstrobot.com"
+    private const val IP_CN: String = "robot.csstrobot.com"
+    private const val IP_US: String = "usom.gfai-robotics.com"
+    private const val IP_HK: String = "gfai-robotics.com"
+
+    var DEFAULT_SERVICE_URL = "http://$IP_DEV:9899/"
+
+    var DEV_SERVICE_URL = "http://$IP_DEV:9899/"
+    var CN_SERVICE_URL = "https://$IP_CN:9899/"
+    var US_SERVICE_URL = "https://$IP_US:9899/"
+    var HK_SERVICE_URL = "https://$IP_HK:9899/"
 
     // 是否绑定平台
     var isBind: Boolean = false

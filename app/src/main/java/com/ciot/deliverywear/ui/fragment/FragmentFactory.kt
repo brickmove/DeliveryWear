@@ -33,6 +33,7 @@ object FragmentFactory {
             ConstantLogic.MSG_TYPE_POINT -> PointFragment()
             ConstantLogic.MSG_TYPE_HEADING -> HeadingFragment()
             ConstantLogic.MSG_TYPE_SETTING -> SettingFragment()
+            ConstantLogic.MSG_TYPE_GATEWAY -> GatewayFragment()
             else -> HomeFragment()
         }
         mCacheFragment!![fragmentType] = fragment

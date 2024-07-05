@@ -7,11 +7,12 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import com.ciot.deliverywear.R
+import com.ciot.deliverywear.bean.DealResult
+import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.ui.MainActivity
 import com.ciot.deliverywear.ui.base.BaseFragment
 
-// 初次使用绑定绑定项目密钥页面
 class SettingFragment : BaseFragment() {
     companion object {
         private const val TAG = "SettingFragment"
@@ -38,6 +39,17 @@ class SettingFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         settingProjectName?.text = RetrofitManager.instance.getProjectName()
-        settingGatewayName?.text = (activity as MainActivity).getBindServer()
+        settingGatewayName?.text = RetrofitManager.instance.getDefaultServer()
+        initListener()
+    }
+
+    private fun initListener() {
+        settingProject?.setOnClickListener {
+            (activity as MainActivity).updateFragment(ConstantLogic.MSG_TYPE_BIND, DealResult())
+        }
+
+        settingGateway?.setOnClickListener {
+            (activity as MainActivity).updateFragment(ConstantLogic.MSG_TYPE_GATEWAY, DealResult())
+        }
     }
 }

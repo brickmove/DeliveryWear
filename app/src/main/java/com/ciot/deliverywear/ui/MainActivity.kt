@@ -25,6 +25,7 @@ import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.dialog.LoadingDialog
 import com.ciot.deliverywear.ui.fragment.BindingFragment
 import com.ciot.deliverywear.ui.fragment.FragmentFactory
+import com.ciot.deliverywear.ui.fragment.GatewayFragment
 import com.ciot.deliverywear.ui.fragment.HeadingFragment
 import com.ciot.deliverywear.ui.fragment.HomeFragment
 import com.ciot.deliverywear.ui.fragment.PointFragment
@@ -65,10 +66,12 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         disposable?.let { mCompositeDisposable!!.add(disposable) }
     }
 
-    fun setBindInfo(key: String) {
+    fun setBindInfo(key: String, server: String) {
         Log.d(TAG, "setBindInfo key: $key")
         prefManager?.bindKey = key
         prefManager?.isBound = true
+        prefManager?.isFirstTimeLaunch = false
+        prefManager?.bindServer = server
     }
 
     private lateinit var binding: ActivityMainBinding
@@ -94,6 +97,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         initView()
+        initData()
         initWatch()
         getCurTime()
     }
@@ -101,19 +105,16 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     override fun onResume() {
         super.onResume()
         initListener()
-        initData()
-        Log.d(TAG, "prefManager.bindKey: " + prefManager?.bindKey)
-        if (prefManager?.bindKey.isNullOrEmpty() || prefManager?.isBound == false) {
+        if (prefManager?.isFirstTimeLaunch == true) {
             showWelcome()
         }
     }
 
     private fun initData() {
-        prefManager?.bindServer = HttpConstant.DEFAULT_SERVICE_URL
-    }
-
-    fun getBindServer(): String? {
-        return prefManager?.bindServer
+        if (prefManager?.bindServer.isNullOrEmpty()) {
+            prefManager?.bindServer = HttpConstant.DEFAULT_SERVICE_URL
+        }
+        RetrofitManager.instance.setDefaultServer(prefManager?.bindServer.toString())
     }
 
     private fun showStandby() {
@@ -194,6 +195,11 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         updateFragment(ConstantLogic.MSG_TYPE_WELCOME, null)
     }
 
+    private fun showSetting() {
+        Log.d(TAG, "MainActivity showSetting >>>>>>>>>")
+        updateFragment(ConstantLogic.MSG_TYPE_SETTING, null)
+    }
+
     // 加载动画弹窗
     private var mLoadingDialog: LoadingDialog? = null
     private fun showLoadingDialog() {
@@ -260,7 +266,13 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 if (currentfragment is PointFragment || currentfragment is SettingFragment) {
                     showHome()
                 } else if (currentfragment is BindingFragment) {
-                    showWelcome()
+                    if (prefManager?.isFirstTimeLaunch == true) {
+                        showWelcome()
+                    } else {
+                        showSetting()
+                    }
+                } else if (currentfragment is GatewayFragment) {
+                    showSetting()
                 }
             }
             R.id.cancel_img -> {
@@ -286,8 +298,13 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     }
     private val handler = Handler(Looper.getMainLooper())
     private val standbyRunnable = Runnable {
-        // 进入待机页面
-        showStandby()
+        if (currentfragment !is SettingFragment &&
+            currentfragment !is BindingFragment &&
+            currentfragment !is GatewayFragment
+            ) {
+            // 进入待机页面
+            showStandby()
+        }
     }
     private val delayMillis: Long = 30000 // 30秒
 
@@ -349,6 +366,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             || type == ConstantLogic.MSG_TYPE_POINT
             || type == ConstantLogic.MSG_TYPE_BIND
             || type == ConstantLogic.MSG_TYPE_SETTING
+            || type == ConstantLogic.MSG_TYPE_GATEWAY
             || type == ConstantLogic.MSG_TYPE_HEADING
             || type == ConstantLogic.MSG_TYPE_WELCOME
             ) {
@@ -374,7 +392,8 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             }
             ConstantLogic.MSG_TYPE_POINT,
             ConstantLogic.MSG_TYPE_BIND,
-            ConstantLogic.MSG_TYPE_SETTING-> {
+            ConstantLogic.MSG_TYPE_SETTING,
+            ConstantLogic.MSG_TYPE_GATEWAY-> {
                 timeTextView?.visibility = View.VISIBLE
                 myRobotText?.visibility = View.GONE
                 returnView?.visibility = View.VISIBLE

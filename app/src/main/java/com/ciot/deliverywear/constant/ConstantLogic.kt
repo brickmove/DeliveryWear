@@ -14,6 +14,7 @@ interface ConstantLogic {
         const val MSG_TYPE_POINT = 4 // 点位页面
         const val MSG_TYPE_SETTING = 5 // 设置页面
         const val MSG_TYPE_HEADING = 6 // 前往目标点页面
+        const val MSG_TYPE_GATEWAY = 7 // 设置页面-设置gateway
         const val MSG_TYPE_STANDBY = 99 // 待机页面
     }
 }

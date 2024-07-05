@@ -33,7 +33,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import com.ciot.deliverywear.utils.FormatUtil
-import org.greenrobot.eventbus.EventBus
+import okhttp3.MediaType.Companion.toMediaType
 
 // 服务器网络请求管理类
 class RetrofitManager {
@@ -51,6 +51,7 @@ class RetrofitManager {
     private var mProjectId: AtomicReference<String> = AtomicReference()
     private var mProjectName: AtomicReference<String> = AtomicReference()
     private var isLoadingSuccess: AtomicReference<Boolean> = AtomicReference(false)
+    private var defaultServer: AtomicReference<String> = AtomicReference()
     @Volatile
     private var mRobotId: MutableList<String>? = mutableListOf()
     @Volatile
@@ -76,7 +77,7 @@ class RetrofitManager {
 
     private fun getWuHanApiService(): WuhanApiService {
         if (mWuhanApiService == null) {
-            val wuHanBaseUrl = HttpConstant.DEFAULT_SERVICE_URL
+            val wuHanBaseUrl = getDefaultServer()
             Log.d(TAG, "getWuHanBaseUrl=$wuHanBaseUrl")
             mWuhanApiService = Retrofit.Builder()
                 .baseUrl(wuHanBaseUrl)
@@ -221,7 +222,7 @@ class RetrofitManager {
         }
         val jsonObject = JsonObject();
         jsonObject.addProperty("id", id)
-        jsonObject.addProperty("positionName", positionName)
+        jsonObject.addProperty("positionname", positionName)
         jsonObject.addProperty("z", "")
         jsonObject.addProperty("flag", "")
         jsonObject.addProperty("mapinfo", "")
@@ -259,13 +260,15 @@ class RetrofitManager {
         if (token.isNullOrEmpty()) {
             return null
         }
-        val jsonObject = JsonObject();
+        val jsonObject = JsonObject()
         jsonObject.addProperty("id", id)
-        jsonObject.addProperty("positionName", positionName)
-        jsonObject.addProperty("z", "")
-        jsonObject.addProperty("flag", "")
-        jsonObject.addProperty("mapinfo", "")
-        val body = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+        jsonObject.addProperty("positionname", positionName)
+        Log.d(TAG, "navPoint jsonObject: " + GsonUtils.toJson(jsonObject))
+        val body =  RequestBody.create(
+            "application/json; charset=utf-8".toMediaTypeOrNull(),
+            jsonObject.toString()
+        )
+        Log.d(TAG, "navPoint body: " + GsonUtils.toJson(body))
         return getWuHanApiService().singlePointNavigate(body, token)
     }
 
@@ -519,6 +522,14 @@ class RetrofitManager {
 
     fun getIsLoading(): Boolean? {
         return isLoadingSuccess.get()
+    }
+
+    fun getDefaultServer(): String {
+        return defaultServer.get()
+    }
+
+    fun setDefaultServer(url: String) {
+        defaultServer.set(url)
     }
 
     private fun onUnsubscribe() {
