@@ -127,7 +127,7 @@ class HomeFragment: BaseFragment() {
 
     @SuppressLint("NotifyDataSetChanged")
     override fun refreshData(isRefreshImmediately: Boolean, data: DealResult) {
-        Log.w(TAG, "HomeFragment refreshData: " + GsonUtils.toJson(data))
+        //Log.w(TAG, "HomeFragment refreshData: " + GsonUtils.toJson(data))
         if (mDataList.size > 0) {
             mDataList.clear()
         }
@@ -147,7 +147,7 @@ class HomeFragment: BaseFragment() {
                 robotData.battery= 60
                 mDataList.add(robotData)
             }
-            Log.w(TAG, "HomeFragment mDataList: " + GsonUtils.toJson(mDataList))
+            //Log.w(TAG, "HomeFragment mDataList: " + GsonUtils.toJson(mDataList))
             adapter?.notifyDataSetChanged()
         }
     }

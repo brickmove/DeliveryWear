@@ -66,7 +66,6 @@ object FragmentFactory {
     }
 
     fun changeFragment(manager: FragmentManager, container: ViewGroup, newFragment: Fragment) {
-        Log.d(tag, "changeFragment>>>>>>>>")
         try {
             var isNew = true
             val transaction = manager.beginTransaction()
@@ -83,47 +82,6 @@ object FragmentFactory {
                 transaction.add(container.id, newFragment)
             }
             transaction.setCustomAnimations(R.anim.fragment_in, R.anim.fragment_out)
-            transaction.commitNowAllowingStateLoss()
-
-        } catch (e: Exception) {
-            Log.d(tag, "changeFragment err: ", e)
-        }
-    }
-
-    fun changeFragment1(manager: FragmentManager, container: ViewGroup, newFragment: Fragment) {
-        Log.d(tag, "changeFragment>>>>>>>>")
-        try {
-            val transaction = manager.beginTransaction()
-
-            // 遍历当前已添加的Fragment，隐藏除了newFragment之外的所有BaseFragment
-            manager.fragments.forEach {
-                if (it is BaseFragment && it !== newFragment) {
-                    transaction.hide(it)
-                }
-            }
-
-            // 判断newFragment是否已经存在于FragmentManager中
-            var isNew = true
-            for (fragment in manager.fragments) {
-                if (fragment === newFragment) {
-                    isNew = false
-                    break
-                }
-            }
-
-            // 如果newFragment是新的实例，则添加到容器并加入到回退堆栈
-            if (isNew) {
-                transaction.add(container.id, newFragment)
-                // 将事务添加到回退堆栈，使得这个Fragment可以被回退
-                transaction.addToBackStack(null)
-            } else {
-                // 如果newFragment已经存在，则显示它
-                transaction.show(newFragment)
-            }
-
-            // 设置转场动画
-            transaction.setCustomAnimations(R.anim.fragment_in, R.anim.fragment_out)
-            // 提交事务，允许在状态丢失时提交，以避免异常
             transaction.commitNowAllowingStateLoss()
 
         } catch (e: Exception) {

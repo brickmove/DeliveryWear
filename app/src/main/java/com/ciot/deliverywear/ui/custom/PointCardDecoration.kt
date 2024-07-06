@@ -19,8 +19,14 @@ class PointCardDecoration(private val verticalSpaceHeight: Int, private val hori
             outRect.right = horizontalSpaceWidth
         }
         outRect.top = verticalSpaceHeight
-        if (parent.getChildAdapterPosition(view) == parent.adapter!!.itemCount - 1) {
-            outRect.bottom = verticalSpaceHeight
+        if (parent.adapter!!.itemCount % 2 == 0) {
+            if (parent.getChildAdapterPosition(view) >= parent.adapter!!.itemCount - 2) {
+                outRect.bottom = verticalSpaceHeight
+            }
+        } else {
+            if (parent.getChildAdapterPosition(view) == parent.adapter!!.itemCount - 1) {
+                outRect.bottom = verticalSpaceHeight
+            }
         }
     }
 }
