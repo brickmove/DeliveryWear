@@ -35,6 +35,7 @@
     <string name="us_server">US Server</string>
     <string name="hk_server">HK Server</string>
     <string name="cn_server">CN Server</string>
+    <string name="dev_server">DEV Server</string>
     <string name="gateway_address">https://robot.csstrobot.com:8443</string>
     <string name="project_name">Kedo Chinese Restaurant</string>
     <string name="got_it">GOT IT</string>

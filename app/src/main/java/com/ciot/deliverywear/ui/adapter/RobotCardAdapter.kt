@@ -37,6 +37,8 @@ class RobotCardAdapter(
             holder.robotId.text = robotData[position].id
         }
         if (robotData[position].link) {
+            holder.summonButton.visibility = View.VISIBLE
+            holder.robotStatus2.visibility = View.GONE
             if (robotData[position].battery!! > 20) {
                 holder.lightningGreen.visibility = View.VISIBLE
                 holder.lightningRed.visibility = View.GONE
@@ -56,7 +58,6 @@ class RobotCardAdapter(
 
             if (robotData[position].label.isNullOrEmpty()) {
                 holder.robotStatus.visibility = View.GONE
-                holder.robotStatus2.visibility = View.GONE
             } else {
                 when (robotData[position].label) {
                     "Idle" -> {

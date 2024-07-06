@@ -12,6 +12,8 @@ import com.ciot.deliverywear.R
 class PointCardAdapter(private val context: Context, private val points: List<String>):
     RecyclerView.Adapter<PointCardAdapter.PointCardViewHolder>() {
     private var selectedPosition: Int? = -1
+
+    @Volatile
     private var selectedName: String? =null
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PointCardViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.recycle_point_card, parent, false)
@@ -24,9 +26,9 @@ class PointCardAdapter(private val context: Context, private val points: List<St
 
     override fun onBindViewHolder(holder: PointCardViewHolder, position: Int) {
         holder.pointName.text = points[position]
-        selectedName = points[position]
         holder.itemView.setBackgroundResource(
             if (selectedPosition == position) {
+                selectedName = points[position]
                 R.drawable.point_background_select
             } else {
                 R.drawable.point_background_normal

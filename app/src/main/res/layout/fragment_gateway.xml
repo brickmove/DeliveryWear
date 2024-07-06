@@ -85,4 +85,27 @@
             android:text="@string/cn_server"
             android:textSize="16sp" />
     </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/dev_server"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="183dp"
+        android:layout_marginEnd="14dp"
+        app:cardBackgroundColor="@color/robot_card_bc"
+        app:cardCornerRadius="20dp"
+        android:textSize="16sp">
+
+        <TextView
+            android:id="@+id/dev_server_tv"
+            android:layout_width="match_parent"
+            android:layout_height="19dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="14dp"
+            android:fontFamily="@font/lexend_medium"
+            android:textColor="@color/white"
+            android:text="@string/dev_server"
+            android:textSize="16sp" />
+    </androidx.cardview.widget.CardView>
 </RelativeLayout>

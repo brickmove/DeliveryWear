@@ -25,7 +25,8 @@ class GatewayFragment : BaseFragment() {
     private var hkServerCard: CardView? = null
     private var cnServerText: TextView? = null
     private var cnServerCard: CardView? = null
-
+    private var devServerText: TextView? = null
+    private var devServerCard: CardView? = null
 
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         val view = inflater.inflate(R.layout.fragment_gateway , container , false)
@@ -37,15 +38,18 @@ class GatewayFragment : BaseFragment() {
         usServerText = view?.findViewById(R.id.us_server_tv)
         hkServerText = view?.findViewById(R.id.hk_server_tv)
         cnServerText = view?.findViewById(R.id.cn_server_tv)
+        devServerText = view?.findViewById(R.id.dev_server_tv)
 
         usServerCard = view?.findViewById(R.id.us_server)
         hkServerCard = view?.findViewById(R.id.hk_server)
         cnServerCard = view?.findViewById(R.id.cn_server)
+        devServerCard = view?.findViewById(R.id.dev_server)
 
         when (RetrofitManager.instance.getDefaultServer()) {
             HttpConstant.CN_SERVICE_URL -> cnServerText?.let { setTextColor(it, R.color.yellow) }
             HttpConstant.HK_SERVICE_URL -> hkServerText?.let { setTextColor(it, R.color.yellow) }
             HttpConstant.US_SERVICE_URL -> usServerText?.let { setTextColor(it, R.color.yellow) }
+            HttpConstant.DEV_SERVICE_URL -> devServerText?.let { setTextColor(it, R.color.yellow) }
         }
     }
 
@@ -60,6 +64,7 @@ class GatewayFragment : BaseFragment() {
             usServerText?.let { it1 -> setTextColor(it1, R.color.yellow) }
             hkServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             cnServerText?.let { it1 -> setTextColor(it1, R.color.white) }
+            devServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             showSwitchDialog(HttpConstant.US_SERVICE_URL)
         }
 
@@ -68,6 +73,7 @@ class GatewayFragment : BaseFragment() {
             hkServerText?.let { it1 -> setTextColor(it1, R.color.yellow) }
             cnServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             usServerText?.let { it1 -> setTextColor(it1, R.color.white) }
+            devServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             showSwitchDialog(HttpConstant.HK_SERVICE_URL)
         }
 
@@ -76,6 +82,16 @@ class GatewayFragment : BaseFragment() {
             cnServerText?.let { it1 -> setTextColor(it1, R.color.yellow) }
             usServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             hkServerText?.let { it1 -> setTextColor(it1, R.color.white) }
+            devServerText?.let { it1 -> setTextColor(it1, R.color.white) }
+            showSwitchDialog(HttpConstant.CN_SERVICE_URL)
+        }
+
+        devServerCard?.setOnClickListener {
+            //RetrofitManager.instance.setDefaultServer(HttpConstant.CN_SERVICE_URL)
+            cnServerText?.let { it1 -> setTextColor(it1, R.color.white) }
+            usServerText?.let { it1 -> setTextColor(it1, R.color.white) }
+            hkServerText?.let { it1 -> setTextColor(it1, R.color.white) }
+            devServerText?.let { it1 -> setTextColor(it1, R.color.yellow) }
             showSwitchDialog(HttpConstant.CN_SERVICE_URL)
         }
     }

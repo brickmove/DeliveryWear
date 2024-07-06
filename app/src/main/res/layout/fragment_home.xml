@@ -14,7 +14,6 @@
         android:layout_height="0dp"
         android:visibility="visible"
         app:layoutManager="androidx.recyclerview.widget.StaggeredGridLayoutManager"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/settingButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -22,17 +21,43 @@
         app:spanCount="1"
         tools:listitem="@layout/recycle_robot_card" />
 
-    <ImageView
+    <androidx.cardview.widget.CardView
         android:id="@+id/settingButton"
         android:layout_width="208dp"
         android:layout_height="52dp"
-        android:src="@mipmap/setting_img"
         android:gravity="center"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="10dp"
         android:layout_marginTop="176dp"
+        app:cardBackgroundColor="@color/robot_card_bc"
+        app:cardCornerRadius="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" >
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:src="@mipmap/setting_tool_img" />
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="130dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginTop="4dp"
+            android:src="@mipmap/setting_rob_img" />
+        <TextView
+            android:layout_width="62dp"
+            android:layout_height="22dp"
+            android:text="@string/settings"
+            android:textAppearance="@style/point"
+            android:layout_marginStart="50dp"
+            android:layout_marginTop="14dp"
+            android:textSize="16sp"
+            android:gravity="center"/>
+
+    </androidx.cardview.widget.CardView>
 
     <ImageView
         android:id="@+id/no_robot_img"

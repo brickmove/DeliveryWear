@@ -110,6 +110,11 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        FragmentFactory.clearCache()
+    }
+
     private fun initData() {
         if (prefManager?.bindServer.isNullOrEmpty()) {
             prefManager?.bindServer = HttpConstant.DEFAULT_SERVICE_URL
