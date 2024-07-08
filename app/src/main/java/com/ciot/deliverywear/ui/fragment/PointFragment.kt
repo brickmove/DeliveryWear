@@ -25,7 +25,6 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import okhttp3.ResponseBody
-import org.json.JSONObject
 
 class PointFragment : BaseFragment() {
     companion object {

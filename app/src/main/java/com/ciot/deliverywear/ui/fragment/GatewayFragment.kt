@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import com.ciot.deliverywear.R
-import com.ciot.deliverywear.constant.HttpConstant
+import com.ciot.deliverywear.constant.NetConstant
 import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.dialog.SwitchProjectDialog
@@ -46,10 +46,10 @@ class GatewayFragment : BaseFragment() {
         devServerCard = view?.findViewById(R.id.dev_server)
 
         when (RetrofitManager.instance.getDefaultServer()) {
-            HttpConstant.CN_SERVICE_URL -> cnServerText?.let { setTextColor(it, R.color.yellow) }
-            HttpConstant.HK_SERVICE_URL -> hkServerText?.let { setTextColor(it, R.color.yellow) }
-            HttpConstant.US_SERVICE_URL -> usServerText?.let { setTextColor(it, R.color.yellow) }
-            HttpConstant.DEV_SERVICE_URL -> devServerText?.let { setTextColor(it, R.color.yellow) }
+            NetConstant.CN_SERVICE_URL -> cnServerText?.let { setTextColor(it, R.color.yellow) }
+            NetConstant.HK_SERVICE_URL -> hkServerText?.let { setTextColor(it, R.color.yellow) }
+            NetConstant.US_SERVICE_URL -> usServerText?.let { setTextColor(it, R.color.yellow) }
+            NetConstant.DEV_SERVICE_URL -> devServerText?.let { setTextColor(it, R.color.yellow) }
         }
     }
 
@@ -65,7 +65,7 @@ class GatewayFragment : BaseFragment() {
             hkServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             cnServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             devServerText?.let { it1 -> setTextColor(it1, R.color.white) }
-            showSwitchDialog(HttpConstant.US_SERVICE_URL)
+            showSwitchDialog(NetConstant.US_SERVICE_URL)
         }
 
         hkServerCard?.setOnClickListener {
@@ -74,7 +74,7 @@ class GatewayFragment : BaseFragment() {
             cnServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             usServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             devServerText?.let { it1 -> setTextColor(it1, R.color.white) }
-            showSwitchDialog(HttpConstant.HK_SERVICE_URL)
+            showSwitchDialog(NetConstant.HK_SERVICE_URL)
         }
 
         cnServerCard?.setOnClickListener {
@@ -83,7 +83,7 @@ class GatewayFragment : BaseFragment() {
             usServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             hkServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             devServerText?.let { it1 -> setTextColor(it1, R.color.white) }
-            showSwitchDialog(HttpConstant.CN_SERVICE_URL)
+            showSwitchDialog(NetConstant.CN_SERVICE_URL)
         }
 
         devServerCard?.setOnClickListener {
@@ -92,7 +92,7 @@ class GatewayFragment : BaseFragment() {
             usServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             hkServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             devServerText?.let { it1 -> setTextColor(it1, R.color.yellow) }
-            showSwitchDialog(HttpConstant.CN_SERVICE_URL)
+            showSwitchDialog(NetConstant.CN_SERVICE_URL)
         }
     }
 

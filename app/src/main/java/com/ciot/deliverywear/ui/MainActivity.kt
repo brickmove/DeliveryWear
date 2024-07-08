@@ -18,7 +18,7 @@ import com.ciot.deliverywear.bean.DealResult
 import com.ciot.deliverywear.bean.NavPointResponse
 import com.ciot.deliverywear.bean.RobotAllResponse
 import com.ciot.deliverywear.constant.ConstantLogic
-import com.ciot.deliverywear.constant.HttpConstant
+import com.ciot.deliverywear.constant.NetConstant
 import com.ciot.deliverywear.databinding.ActivityMainBinding
 import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.ui.base.BaseFragment
@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     private fun initData() {
         if (prefManager?.bindServer.isNullOrEmpty()) {
-            prefManager?.bindServer = HttpConstant.DEFAULT_SERVICE_URL
+            prefManager?.bindServer = NetConstant.DEFAULT_SERVICE_URL
         }
         RetrofitManager.instance.setDefaultServer(prefManager?.bindServer.toString())
     }
@@ -251,6 +251,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                     }
 
                     override fun onComplete() {
+                        RetrofitManager.instance.init()
                         showHome()
                     }
                 })
@@ -335,6 +336,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         handler.removeCallbacks(standbyRunnable)
         curTimeHandler.removeCallbacksAndMessages(null)
         dismissLoadingDialog()
+        RetrofitManager.instance.getTcpClient()?.disconnect()
     }
 
     fun updateFragment(type: Int, result: DealResult?) {

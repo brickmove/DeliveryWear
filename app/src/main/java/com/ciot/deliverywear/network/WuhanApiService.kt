@@ -17,6 +17,11 @@ interface WuhanApiService {
     @POST("/api/Users/codeLogin")
     fun login(@Body body: RequestBody): Observable<ResponseBody>
 
+    /*获取网关*/
+    @Headers(RetrofitUrlManager.DOMAIN_NAME_HEADER + Api.DOMAIN_NAME_PROPERTY)
+    @POST("/api/fittings/route")
+    fun allow(@Body body: RequestBody): Observable<ResponseBody>
+
     /*获取导航点*/
     @Headers(RetrofitUrlManager.DOMAIN_NAME_HEADER + Api.DOMAIN_NAME_PROPERTY)
     @GET("/api/Robots/ctrl/getNavigate")

@@ -6,41 +6,46 @@ import android.os.Looper
 import android.text.TextUtils
 import android.util.Log
 import com.blankj.utilcode.util.GsonUtils
+import com.blankj.utilcode.util.ThreadUtils
+import com.ciot.deliverywear.bean.AllowResponse
 import com.ciot.deliverywear.bean.NavPointData
 import com.ciot.deliverywear.bean.NavPointResponse
 import com.ciot.deliverywear.bean.RobotAllResponse
 import com.ciot.deliverywear.bean.RobotData
 import com.ciot.deliverywear.bean.RobotInfoResponse
-import com.ciot.deliverywear.constant.HttpConstant
+import com.ciot.deliverywear.constant.NetConstant
+import com.ciot.deliverywear.network.tcp.RetryWithDelay
+import com.ciot.deliverywear.network.tcp.TcpClient
+import com.ciot.deliverywear.network.tcp.TcpMsgListener
+import com.ciot.deliverywear.utils.FormatUtil
 import com.google.gson.JsonObject
 import io.reactivex.Observable
 import io.reactivex.Observer
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import me.jessyan.retrofiturlmanager.RetrofitUrlManager
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
-import retrofit2.converter.gson.GsonConverterFactory
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
-import com.ciot.deliverywear.utils.FormatUtil
-import okhttp3.MediaType.Companion.toMediaType
 
 // 服务器网络请求管理类
 class RetrofitManager {
     private val TAG = "NETWORK_TAG"
     private var mWuHanBaseUrl: String? = null
     private var mCompositeDisposable: CompositeDisposable? = null
-
+    private var mWatchAllowDisable: Disposable? = null
     /*请求服务器超时时间*/
     private val SERVER_TIMEOUT: Long = 5000
     private var mWuhanApiService: WuhanApiService? = null
@@ -52,6 +57,7 @@ class RetrofitManager {
     private var mProjectName: AtomicReference<String> = AtomicReference()
     private var isLoadingSuccess: AtomicReference<Boolean> = AtomicReference(false)
     private var defaultServer: AtomicReference<String> = AtomicReference()
+    private var tcpIp: AtomicReference<String> = AtomicReference()
     @Volatile
     private var mRobotId: MutableList<String>? = mutableListOf()
     @Volatile
@@ -64,7 +70,9 @@ class RetrofitManager {
      */
     private var mTokenInvalidTime: AtomicReference<Long> = AtomicReference(0)
     //初始化状态：0表示获取到IP;1表示激活成功获取到账户和密码;2表示登录成功;3表示获取到token;4表示获取到projectId等属性信息
-    var initState = HttpConstant.INIT_STATE_IDLE
+    private var initState = NetConstant.INIT_STATE_IDLE
+
+    private var tcpClient: TcpClient? = null
 
     private object RetrofitHelperHolder {
         val holder = RetrofitManager()
@@ -89,6 +97,78 @@ class RetrofitManager {
             Log.d(TAG, "getWuHanApiService")
         }
         return mWuhanApiService!!
+    }
+
+    private var retryCount: Int = 0
+    private var isNeedRetry: Boolean = true
+    fun init() {
+        watchAllow(getDefaultServer(), object : Observer<ResponseBody> {
+            override fun onComplete() {
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                mWatchAllowDisable = d
+                addSubscription(d)
+            }
+
+            override fun onNext(response: ResponseBody) {
+                val allowResponse = GsonUtils.fromJson(String(response.bytes()), AllowResponse::class.java)
+                if (allowResponse.isSuccess()) {
+                    val data: AllowResponse.DataBean? = allowResponse.getData()
+                    if (data != null) {
+                        data.getDomain()?.let { setTcpIp(it) }
+                    }
+                } else {
+                    Log.w(TAG, "请求接入服务器失败...")
+                }
+                initTcpService()
+            }
+
+            override fun onError(e: Throwable) {
+                //重试10次 每次间隔三秒后才算报错。避免第一次开机无网络直接报错问题
+                if (isNeedRetry && retryCount < 20) {
+                    ThreadUtils.getMainHandler().postDelayed({
+                        init()
+                    }, 3000)
+                    retryCount++
+                    Log.d(TAG, "===retryCount====$retryCount")
+                } else {
+                    Log.e(TAG, "robotAllow error->${e.message}")
+                    Log.w(TAG, "请求接入服务器失败...")
+                }
+            }
+        })
+    }
+
+    private fun initTcpService() {
+        tcpClient = TcpClient.getInstance(getTcpIp(), NetConstant.TCP_SERVER_PORT)
+        val listener = TcpMsgListener()
+        tcpClient!!.setListener(listener)
+        tcpClient!!.connectAndRegister()
+    }
+
+    private fun watchAllow(baseUrl: String, observer: Observer<ResponseBody>) {
+        setPropertyDomain(baseUrl)
+        val idJson = "{\"id\": \"${getWuHanUserName()}\"}"
+        val body = idJson.toRequestBody("application/json;charset=utf-8".toMediaType())
+        getWuHanApiService()
+            .allow(body)
+            .retryWhen(RetryWithDelay(40, 3000))
+            .timeout(120000, TimeUnit.MILLISECONDS)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(observer)
+    }
+
+    /**
+     * 动态切换BaseUrl
+     */
+    private fun setPropertyDomain(baseUrl: String) {
+        val httpUrl = RetrofitUrlManager.getInstance().fetchDomain(Api.DOMAIN_NAME_PROPERTY)
+        if (httpUrl == null || httpUrl.toString() != baseUrl) {
+            //可以在 App 运行时随意切换某个接口的 BaseUrl
+            RetrofitUrlManager.getInstance().putDomain(Api.DOMAIN_NAME_PROPERTY, baseUrl)
+        }
     }
 
     fun getRobots() {
@@ -318,9 +398,9 @@ class RetrofitManager {
                         login()
                     })
                 }
-                connectTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
-                readTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
-                writeTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+                connectTimeout(NetConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+                readTimeout(NetConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+                writeTimeout(NetConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
                 retryOnConnectionFailure(true) // 错误重连
                 proxy(Proxy.NO_PROXY) //防止被抓包，提升安全性
                 // cookieJar(CookieManager())
@@ -378,11 +458,11 @@ class RetrofitManager {
     }
 
     private fun getUserRequestBody(isGetUserAndPwm: Boolean): RequestBody {
-        if (initState == HttpConstant.INIT_STATE_GET_IP && isGetUserAndPwm) {
+        if (initState == NetConstant.INIT_STATE_GET_IP && isGetUserAndPwm) {
             Log.d(TAG, "login condition is get")
         }
         //这里条件(账户名和密码)都满足后才开始登录
-        initState = HttpConstant.INIT_STATE_GET_USER
+        initState = NetConstant.INIT_STATE_GET_USER
         val root = JSONObject()
         root.put("username", getWuHanUserName())
         root.put("password", getWuHanPassWord())
@@ -414,7 +494,7 @@ class RetrofitManager {
         } catch (e: Exception) {
             Log.d(TAG, "parse WuHanLogin Exception:$e")
         }
-        initState = HttpConstant.INIT_STATE_LONGIN_GET_TOKEN
+        initState = NetConstant.INIT_STATE_LONGIN_GET_TOKEN
         if (TextUtils.isEmpty(token)) {
             Log.d(TAG, "get Token is Empty")
             return false
@@ -530,6 +610,18 @@ class RetrofitManager {
 
     fun setDefaultServer(url: String) {
         defaultServer.set(url)
+    }
+
+    private fun getTcpIp(): String {
+        return tcpIp.get()
+    }
+
+    fun setTcpIp(domain: String) {
+        tcpIp.set(domain)
+    }
+
+    fun getTcpClient() : TcpClient? {
+        return tcpClient
     }
 
     private fun onUnsubscribe() {

@@ -5,6 +5,7 @@ interface ConstantLogic {
         // 日志TAG标签
         const val TIME_TEST = "TIME_TEST"
         const val FRAGMENT = "FRAGMENT"
+        const val NETWORK_TAG = "NETWORK_TAG"
 
         // fragment
         const val MSG_TYPE_HOME = 0 // 主页
