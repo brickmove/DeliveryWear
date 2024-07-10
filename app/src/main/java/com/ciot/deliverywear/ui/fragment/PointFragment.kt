@@ -78,6 +78,7 @@ class PointFragment : BaseFragment() {
                                 val dealResult = DealResult()
                                 dealResult.selectPoint = it1
                                 dealResult.navInfo = "Heading To "
+                                dealResult.selectRobotId = selectRobot
                                 (activity as MainActivity).updateFragment(ConstantLogic.MSG_TYPE_HEADING, dealResult)
                             }
 

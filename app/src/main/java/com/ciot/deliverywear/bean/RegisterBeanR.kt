@@ -16,7 +16,7 @@ class RegisterBeanR {
     //unix时间戳
     @Expose(serialize = true, deserialize = true)
     @SerializedName("time")
-    var time: Long? = null
+    var time: String? = null
 
     //设备类型
     @Expose(serialize = true, deserialize = true)

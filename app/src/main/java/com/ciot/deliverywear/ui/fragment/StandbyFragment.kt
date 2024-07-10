@@ -31,7 +31,7 @@ class StandbyFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         view.setOnTouchListener { _, _ ->
             (activity as? MainActivity)?.showHome()
-            true
+            false
         }
     }
 

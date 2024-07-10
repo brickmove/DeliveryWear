@@ -7,12 +7,15 @@ import android.text.TextUtils
 import android.util.Log
 import com.blankj.utilcode.util.GsonUtils
 import com.blankj.utilcode.util.ThreadUtils
+import com.ciot.deliverywear.bean.AllStatusResponse
 import com.ciot.deliverywear.bean.AllowResponse
+import com.ciot.deliverywear.bean.EventBusBean
 import com.ciot.deliverywear.bean.NavPointData
 import com.ciot.deliverywear.bean.NavPointResponse
 import com.ciot.deliverywear.bean.RobotAllResponse
 import com.ciot.deliverywear.bean.RobotData
 import com.ciot.deliverywear.bean.RobotInfoResponse
+import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.constant.NetConstant
 import com.ciot.deliverywear.network.tcp.RetryWithDelay
 import com.ciot.deliverywear.network.tcp.TcpClient
@@ -26,12 +29,11 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import me.jessyan.retrofiturlmanager.RetrofitUrlManager
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
+import org.greenrobot.eventbus.EventBus
 import org.json.JSONObject
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -42,7 +44,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 // 服务器网络请求管理类
 class RetrofitManager {
-    private val TAG = "NETWORK_TAG"
+    private val TAG = ConstantLogic.NETWORK_TAG
     private var mWuHanBaseUrl: String? = null
     private var mCompositeDisposable: CompositeDisposable? = null
     private var mWatchAllowDisable: Disposable? = null
@@ -102,6 +104,7 @@ class RetrofitManager {
     private var retryCount: Int = 0
     private var isNeedRetry: Boolean = true
     fun init() {
+        Log.d(TAG, "RetrofitManager init start...")
         watchAllow(getDefaultServer(), object : Observer<ResponseBody> {
             override fun onComplete() {
             }
@@ -113,6 +116,7 @@ class RetrofitManager {
 
             override fun onNext(response: ResponseBody) {
                 val allowResponse = GsonUtils.fromJson(String(response.bytes()), AllowResponse::class.java)
+                Log.d(TAG, "allowResponse: " + GsonUtils.toJson(allowResponse))
                 if (allowResponse.isSuccess()) {
                     val data: AllowResponse.DataBean? = allowResponse.getData()
                     if (data != null) {
@@ -140,7 +144,8 @@ class RetrofitManager {
         })
     }
 
-    private fun initTcpService() {
+    fun initTcpService() {
+        Log.d(TAG, "initTcpService...")
         tcpClient = TcpClient.getInstance(getTcpIp(), NetConstant.TCP_SERVER_PORT)
         val listener = TcpMsgListener()
         tcpClient!!.setListener(listener)
@@ -149,10 +154,8 @@ class RetrofitManager {
 
     private fun watchAllow(baseUrl: String, observer: Observer<ResponseBody>) {
         setPropertyDomain(baseUrl)
-        val idJson = "{\"id\": \"${getWuHanUserName()}\"}"
-        val body = idJson.toRequestBody("application/json;charset=utf-8".toMediaType())
         getWuHanApiService()
-            .allow(body)
+            .allow()
             .retryWhen(RetryWithDelay(40, 3000))
             .timeout(120000, TimeUnit.MILLISECONDS)
             .subscribeOn(Schedulers.io())
@@ -169,38 +172,6 @@ class RetrofitManager {
             //可以在 App 运行时随意切换某个接口的 BaseUrl
             RetrofitUrlManager.getInstance().putDomain(Api.DOMAIN_NAME_PROPERTY, baseUrl)
         }
-    }
-
-    fun getRobots() {
-        val token = getToken()
-        val project = getProject()
-        if (token.isNullOrEmpty() || project.isNullOrEmpty()) {
-            Log.e(TAG, "param err--->token: $token, project: $project")
-            return
-        }
-        val start ="0"
-        val limit ="100"
-        Log.d(TAG, "param--->token: $token, project: $project")
-        getWuHanApiService().findRobotByProject(token, project, start, limit)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object:Observer<RobotAllResponse>{
-                override fun onSubscribe(d: Disposable) {
-                    addSubscription(d)
-                }
-
-                override fun onNext(body: RobotAllResponse) {
-                    Log.d(TAG, "RobotAllResponse: " + GsonUtils.toJson(body))
-                    parseRobotAllResponseBody(body)
-                }
-
-                override fun onError(e: Throwable) {
-                    Log.w(TAG,"onError: ${e.message}")
-                }
-
-                override fun onComplete() {
-                }
-            })
     }
 
     fun getRobotsForHome() : Observable<RobotAllResponse>? {
@@ -225,41 +196,41 @@ class RetrofitManager {
         }
         mRobotId = mutableListOf()
         mRobotData = mutableListOf()
-        robotInfo.map {
-            val robotData = RobotData()
-            robotData.id = it.id
-            robotData.name = it.name
-            robotData.link = it.link == true
-            robotData.label = it.label?.let { it1 -> FormatUtil.formatLable(it1) }
-            robotData.battery= 60
-            mRobotData!!.add(robotData)
-            if (it.id.isNullOrEmpty()) {
-                mRobotId!!.add("")
-            } else {
-                mRobotId!!.add(it.id!!)
-            }
-        }
-        Log.d(TAG, "parseRobotAllResponseBody robot list: " + GsonUtils.toJson(mRobotData))
-    }
 
-    fun getNavPoint(robotId: String, map: String) {
-        Log.d(TAG, "getNavPoint>>>>>>>")
-        val token = getToken()
-        if (token.isNullOrEmpty() || robotId.isEmpty()) {
-            return
-        }
-        onUnsubscribe()
-        getWuHanApiService().getNavigationPoint(token, robotId, map)
+        Observable.fromIterable(robotInfo)
+            .flatMap { info ->
+                val id = info.id // 获取id
+                val token = getToken() // 获取token
+                if (token.isNullOrEmpty()) {
+                    return@flatMap Observable.never<Pair<RobotInfoResponse, AllStatusResponse>>()
+                } else {
+                    return@flatMap getWuHanApiService().getAllStatus(id, token)
+                        .map { statusResponse -> Pair(info, statusResponse) }
+                }
+            }
+            .distinct { pair -> pair.first.id }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object:Observer <NavPointResponse>{
+            .subscribe(object : Observer<Pair<RobotInfoResponse, AllStatusResponse>> {
                 override fun onSubscribe(d: Disposable) {
                     addSubscription(d)
                 }
 
-                override fun onNext(body: NavPointResponse) {
-                    Log.d(TAG, "NavPointResponse: " + GsonUtils.toJson(body))
-                    parsePointAllResponseBody(body)
+                override fun onNext(pair: Pair<RobotInfoResponse, AllStatusResponse>) {
+                    val info = pair.first
+                    val status = pair.second
+                    val robotData = RobotData()
+                    robotData.id = info.id
+                    robotData.name = info.name
+                    robotData.link = info.link == true
+                    robotData.label = status.getState()?.let { it1 -> FormatUtil.formatLable(it1) }
+                    robotData.battery = status.getBatteryInfo()?.getBattery()
+                    mRobotData!!.add(robotData)
+                    if (info.id.isNullOrEmpty()) {
+                        mRobotId!!.add("")
+                    } else {
+                        mRobotId!!.add(info.id!!)
+                    }
                 }
 
                 override fun onError(e: Throwable) {
@@ -267,7 +238,10 @@ class RetrofitManager {
                 }
 
                 override fun onComplete() {
-                    setIsLoading(true)
+                    Log.d(TAG, "parseRobotAllResponseBody robot list: " + GsonUtils.toJson(mRobotData))
+                    val eventBusBean = EventBusBean()
+                    eventBusBean.eventType = ConstantLogic.EVENT_SHOW_HOME
+                    EventBus.getDefault().post(eventBusBean)
                 }
             })
     }
@@ -292,47 +266,6 @@ class RetrofitManager {
             it.getPositionName()?.let { it1 -> mPoints?.add(it1) }
         }
         Log.d(TAG, "parsePointAllResponseBody point list: " + GsonUtils.toJson(mPoints))
-    }
-
-    @SuppressLint("CheckResult")
-    fun navigatePoint(id: String, positionName: String) {
-        val token = getToken()
-        if (token.isNullOrEmpty()) {
-            return
-        }
-        val jsonObject = JsonObject();
-        jsonObject.addProperty("id", id)
-        jsonObject.addProperty("positionname", positionName)
-        jsonObject.addProperty("z", "")
-        jsonObject.addProperty("flag", "")
-        jsonObject.addProperty("mapinfo", "")
-        val body = jsonObject.toString()
-            .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-        getWuHanApiService().singlePointNavigate(body, token)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object:Observer <ResponseBody>{
-                override fun onSubscribe(d: Disposable) {
-                    addSubscription(d)
-                }
-
-                override fun onNext(body: ResponseBody) {
-                    try {
-                        val json = String(body.bytes())
-                        val res = JSONObject(json).getJSONObject("result")
-                        Log.d(TAG, "navigatePoint result:$res")
-                    } catch (e: Exception) {
-                        Log.d(TAG, "parse navigatePoint Exception:$e")
-                    }
-                }
-
-                override fun onError(e: Throwable) {
-                    Log.w(TAG,"onError: ${e.message}")
-                }
-
-                override fun onComplete() {
-                }
-            })
     }
 
     fun navPoint(id: String, positionName: String): Observable<ResponseBody>? {
@@ -540,7 +473,6 @@ class RetrofitManager {
 
     fun setRobotList(robotId: List<String>) {
         //设备id
-        Log.d(TAG, "RetrofitManager setRobotId=$robotId")
         if (robotId.isNotEmpty()) {
             Log.e(TAG, "RetrofitManager setRobotId is empty")
             return

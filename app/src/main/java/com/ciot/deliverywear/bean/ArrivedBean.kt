@@ -7,12 +7,12 @@ import com.google.gson.annotations.Expose
  * Description:
  * Encoding: utf-8
  */
-class ResultBean {
+class ArrivedBean {
     @Expose(serialize = true, deserialize = true)
     @SerializedName("result")
-    var result: Int? = null
+    var result: Boolean? = null
 
     @Expose(serialize = true, deserialize = true)
-    @SerializedName("time")
-    var time: String? = null
+    @SerializedName("info")
+    var info: String? = null
 }

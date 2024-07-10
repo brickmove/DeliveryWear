@@ -60,7 +60,7 @@ android {
     productFlavors {
         DeliveryWear {
             dimension "app"
-            applicationId "com.ciot.lelerobot"
+            applicationId "com.ciot.deliverywear"
             resValue "string", "app_name", "@string/app_name"
             manifestPlaceholders = [CHANNEL_VALUE: "DeliveryWear"
                                     , app_icon   : "@mipmap/ypschool_logo"

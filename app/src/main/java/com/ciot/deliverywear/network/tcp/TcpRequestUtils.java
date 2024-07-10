@@ -19,7 +19,7 @@ public class TcpRequestUtils {
         short rflag = protocolBean.getRflag();
         String body = GsonUtils.getGsonR(cmd, true).toJson(protocolBean.getBody(), GsonUtils.getType(cmd, qa));
         int length = body.getBytes().length;
-        byte[] beanBytes = new byte[51 + length];
+        byte[] beanBytes = new byte[23 + length];
         byte[] bytes = ByteUtils.int2bytes(head);
         System.arraycopy(bytes, 0, beanBytes, 0, 4);
         beanBytes[4] = qa;
@@ -27,7 +27,7 @@ public class TcpRequestUtils {
         bytes = ByteUtils.int2bytes(seq);
         System.arraycopy(bytes, 0, beanBytes, 5, 4);
 
-        bytes = ByteUtils.int2bytes(type);
+        bytes = ByteUtils.short2bytes((short) type);
         System.arraycopy(bytes, 0, beanBytes, 9, 2);
 
         bytes = ByteUtils.short2bytes(cmd);
@@ -71,26 +71,27 @@ public class TcpRequestUtils {
         protocolBean.setCmd(cmd);
         Log.d("body_tag", "cmd:"+cmd +";bytes2Bean: "+ body);
 
+        System.arraycopy(beanBytes, 9, shortbytes, 0, 2);
+        short type = ByteUtils.bytes2short(shortbytes);
+        protocolBean.setType(type);
+
         byte qa = beanBytes[4];
         protocolBean.setQa(qa);
-
         protocolBean.setBody(GsonUtils.getGson().fromJson(body, GsonUtils.getType(cmd, qa)));
 
         System.arraycopy(beanBytes, 5, bytes, 0, 4);
         int seq = ByteUtils.bytes2int(bytes);
         protocolBean.setSeq(seq);
-
         System.arraycopy(beanBytes, 13, shortbytes, 0, 2);
         short ver = ByteUtils.bytes2short(shortbytes);
         protocolBean.setVer(ver);
-
         System.arraycopy(beanBytes, 15, shortbytes, 0, 2);
         short cFlag = ByteUtils.bytes2short(shortbytes);
         protocolBean.setCflag(cFlag);
 
         System.arraycopy(beanBytes, 17, shortbytes, 0, 2);
         short rFlag = ByteUtils.bytes2short(shortbytes);
-        protocolBean.setCflag(rFlag);
+        protocolBean.setRflag(rFlag);
 
         return protocolBean;
     }

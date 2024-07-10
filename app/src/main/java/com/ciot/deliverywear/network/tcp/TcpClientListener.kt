@@ -6,5 +6,5 @@ package com.ciot.deliverywear.network.tcp
  * Encoding: utf-8
  */
 interface TcpClientListener {
-    fun onMessageReceived(message: String)
+    fun onMessageReceived(message: ByteArray)
 }

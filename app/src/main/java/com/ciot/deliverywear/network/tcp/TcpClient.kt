@@ -1,11 +1,12 @@
 package com.ciot.deliverywear.network.tcp
 
 import android.util.Log
+import com.ciot.deliverywear.bean.EventBusBean
 import com.ciot.deliverywear.constant.ConstantLogic
-import java.io.BufferedReader
-import java.io.BufferedWriter
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
+import com.ciot.deliverywear.constant.NetConstant
+import org.greenrobot.eventbus.EventBus
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.Socket
 import java.util.Timer
 import java.util.TimerTask
@@ -19,14 +20,17 @@ import kotlin.concurrent.schedule
 class TcpClient(private val serverIp: String, private val serverPort: Int) {
     private var TAG = ConstantLogic.NETWORK_TAG
     private lateinit var socket: Socket
-    private lateinit var reader: BufferedReader
-    private lateinit var writer: BufferedWriter
-    private lateinit var heartbeatTimer: Timer
+    private lateinit var input: InputStream
+    private lateinit var output: OutputStream
+    private var heartbeatTimer: Timer? = null
 
     private var reconnectTimer: TimerTask? = null
     private var reconnectInterval: Long = 5000 // 重连间隔，默认为5秒
     private var isReconnecting: Boolean = false // 是否正在重连
     private var listener: TcpClientListener? = null
+
+    private val bufferSize = 1024
+    private val buffer = ByteArray(bufferSize)
 
     companion object {
         private var instance: TcpClient? = null
@@ -47,35 +51,24 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
         Thread {
             try {
                 socket = Socket(serverIp, serverPort)
-                reader = BufferedReader(InputStreamReader(socket.getInputStream()))
-                writer = BufferedWriter(OutputStreamWriter(socket.getOutputStream()))
-
+                output = socket.getOutputStream()
                 val registerBytes = TcpRequestUtils.bean2Bytes(TcpSendMsgUtil.instance.sendRegisterWatch())
+                printByteArrayAsHex(registerBytes)
                 // 发送注册指令
-                writer.write(String(registerBytes))
-                writer.newLine()
-                writer.flush()
+                output.write(registerBytes)
+                output.flush()
 
-                // 等待注册成功回复
-//                val response = reader.readLine()
-//                val receive = TcpRequestUtils.bytes2Bean(response.toByteArray())
-//                if (receive.cmd == NetConstant.CONTROL_DEVICE_MANAGEMENT_REGISTER) {
-//                    val response: ResultBean = receive.body as ResultBean
-//                    if (response.result == true) {
-//                        startHeartbeat() // 注册成功后开始发送心跳指令
-//                    } else {
-//                        startReconnect()
-//                    }
-//                }
-
+                input = socket.getInputStream()
                 // 开始循环接收消息
                 while (true) {
-                    val message = reader.readLine()
+                    val bytesRead = input.read(buffer)
+                    val message = buffer.copyOfRange(0, bytesRead)
+                    //printByteArrayAsHex(message)
                     listener?.onMessageReceived(message)
                 }
 
             } catch (e: Exception) {
-                Log.e(TAG, "")
+                Log.e(TAG, "TCP connectAndRegister error: $e")
                 if (!isReconnecting) {
                     startReconnect() // 断网后开始重连
                 }
@@ -83,24 +76,32 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
         }.start()
     }
 
+    private fun printByteArrayAsHex(byteArray: ByteArray) {
+        val hexString = StringBuilder()
+        for (byte in byteArray) {
+            val hex = String.format("%02X", byte)
+            hexString.append(hex).append(" ")
+        }
+        Log.d(TAG, "printByteArrayAsHex: $hexString")
+    }
+
     fun startHeartbeat() {
         heartbeatTimer = Timer()
-        heartbeatTimer.schedule(0, 5000) {
+        heartbeatTimer!!.schedule(0, 1000) {
             sendHeartbeat()
         }
     }
 
     private fun sendHeartbeat() {
         Thread {
-            if (this::writer.isInitialized) {
+            if (this::output.isInitialized) {
                 try {
                     val heartBeatBytes = TcpRequestUtils.bean2Bytes(TcpSendMsgUtil.instance.sendHeartBeat())
-                    writer.write(String(heartBeatBytes))
-                    writer.newLine()
-                    writer.flush()
+                    output.write(heartBeatBytes)
+                    output.flush()
 
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Log.e(TAG, "TCP sendHeartbeat error: $e")
                     if (!isReconnecting) {
                         startReconnect() // 发送心跳失败后开始重连
                     }
@@ -121,28 +122,29 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
 
     fun disconnect() {
         isReconnecting = false
-        heartbeatTimer.cancel() // 取消心跳定时器
+        heartbeatTimer?.cancel() // 取消心跳定时器
         reconnectTimer?.cancel() // 取消重连定时器
 
         try {
             socket.close()
-            reader.close()
-            writer.close()
+            output.close()
+            input.close()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "TCP disconnect error: $e")
         }
     }
 
     private fun reconnect() {
         try {
             socket.close()
-            reader.close()
-            writer.close()
+            output.close()
+            input.close()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "TCP reconnect error: $e")
         }
-
-        // 重新连接服务器
-        connectAndRegister()
+        //发送重连消息
+        val eventBusBean = EventBusBean()
+        eventBusBean.eventType = ConstantLogic.EVENT_RECONNECT_TCP
+        EventBus.getDefault().post(eventBusBean)
     }
 }

@@ -1,4 +1,5 @@
 package com.ciot.deliverywear.network
+import com.ciot.deliverywear.bean.AllStatusResponse
 import com.ciot.deliverywear.bean.NavPointResponse
 import com.ciot.deliverywear.bean.RobotAllResponse
 import io.reactivex.Observable
@@ -19,8 +20,8 @@ interface WuhanApiService {
 
     /*获取网关*/
     @Headers(RetrofitUrlManager.DOMAIN_NAME_HEADER + Api.DOMAIN_NAME_PROPERTY)
-    @POST("/api/fittings/route")
-    fun allow(@Body body: RequestBody): Observable<ResponseBody>
+    @GET("/api/fittings/route")
+    fun allow(): Observable<ResponseBody>
 
     /*获取导航点*/
     @Headers(RetrofitUrlManager.DOMAIN_NAME_HEADER + Api.DOMAIN_NAME_PROPERTY)
@@ -44,5 +45,8 @@ interface WuhanApiService {
                            @Query("limit") limit: String?,
     ): Observable<RobotAllResponse>
 
-
+    /*机器人全状态查询*/
+    @Headers(RetrofitUrlManager.DOMAIN_NAME_HEADER + Api.DOMAIN_NAME_PROPERTY)
+    @GET("/api/Robots/getallstatus")
+    fun getAllStatus(@Query("id") id: String?, @Query("access_token") token: String?): Observable<AllStatusResponse>
 }

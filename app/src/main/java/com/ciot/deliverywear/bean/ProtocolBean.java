@@ -1,13 +1,5 @@
 package com.ciot.deliverywear.bean;
 
-
-/**
- * 大端字节序
- *
- * @description: sros 传输主bean
- * @author: zhenglong.zhu
- * @update: 2018/11/27
- */
 public class ProtocolBean {
 
     /**

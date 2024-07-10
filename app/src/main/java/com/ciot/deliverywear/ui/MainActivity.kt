@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.R
 import com.ciot.deliverywear.bean.DealResult
+import com.ciot.deliverywear.bean.EventBusBean
 import com.ciot.deliverywear.bean.NavPointResponse
 import com.ciot.deliverywear.bean.RobotAllResponse
 import com.ciot.deliverywear.constant.ConstantLogic
@@ -41,6 +42,8 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import okhttp3.ResponseBody
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -108,10 +111,16 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         if (prefManager?.isFirstTimeLaunch == true) {
             showWelcome()
         }
+
+        if (!EventBus.getDefault().isRegistered(this@MainActivity)) {
+            EventBus.getDefault().register(this@MainActivity)
+        }
     }
 
     override fun onPause() {
         super.onPause()
+        EventBus.getDefault().unregister(this@MainActivity)
+        EventBus.clearCaches()
         FragmentFactory.clearCache()
     }
 
@@ -120,6 +129,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             prefManager?.bindServer = NetConstant.DEFAULT_SERVICE_URL
         }
         RetrofitManager.instance.setDefaultServer(prefManager?.bindServer.toString())
+        RetrofitManager.instance.setTcpIp(NetConstant.IP_DEV)
     }
 
     private fun showStandby() {
@@ -156,13 +166,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 }
 
                 override fun onComplete() {
-                    val dealResult = DealResult()
-                    dealResult.type = ConstantLogic.MSG_TYPE_HOME
-                    dealResult.robotInfoList = RetrofitManager.instance.getRobotData()
-                    Log.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
-                    //dismissLoadingDialog()
-                    updateFragment(ConstantLogic.MSG_TYPE_HOME, dealResult)
-                    resetTimer()
+
                 }
             })
     }
@@ -232,6 +236,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         RetrofitManager.instance.setWuHanUserName(mac)
         val code = prefManager?.bindKey
         if (prefManager?.isBound == true && code != null) {
+            Log.d(TAG, "project code isBound, code=$code")
             //showLoadingDialog()
             RetrofitManager.instance.setWuHanPassWord(code)
             RetrofitManager.instance.firstLogin()
@@ -423,6 +428,31 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 myRobotText?.visibility = View.GONE
                 returnView?.visibility = View.GONE
                 cancelView?.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    @Subscribe
+    fun handleEvent(bean: EventBusBean?) {
+        Log.d(TAG, "MainActivity handleEvent message:" + bean!!.toString())
+        when (bean.eventType) {
+            ConstantLogic.EVENT_ARRIVED_POINT -> {
+                val arrivedPoint = bean.content
+                val dealResult = DealResult()
+                dealResult.selectPoint = arrivedPoint
+                dealResult.navInfo = "Arriving To "
+                updateFragment(ConstantLogic.MSG_TYPE_HEADING, dealResult)
+            }
+            ConstantLogic.EVENT_RECONNECT_TCP -> {
+                RetrofitManager.instance.initTcpService()
+            }
+            ConstantLogic.EVENT_SHOW_HOME -> {
+                val dealResult = DealResult()
+                dealResult.type = ConstantLogic.MSG_TYPE_HOME
+                dealResult.robotInfoList = RetrofitManager.instance.getRobotData()
+                Log.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
+                updateFragment(ConstantLogic.MSG_TYPE_HOME, dealResult)
+                resetTimer()
             }
         }
     }

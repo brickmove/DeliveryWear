@@ -17,5 +17,10 @@ interface ConstantLogic {
         const val MSG_TYPE_HEADING = 6 // 前往目标点页面
         const val MSG_TYPE_GATEWAY = 7 // 设置页面-设置gateway
         const val MSG_TYPE_STANDBY = 99 // 待机页面
+
+        // Event bus constant
+        const val EVENT_ARRIVED_POINT = "EVENT_ARRIVED_POINT" // 到达点位
+        const val EVENT_SHOW_HOME = "EVENT_SHOW_HOME"         // 显示首页
+        const val EVENT_RECONNECT_TCP = "EVENT_RECONNECT_TCP" // 重连tcp
     }
 }

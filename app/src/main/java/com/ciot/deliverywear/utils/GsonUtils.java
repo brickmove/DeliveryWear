@@ -13,11 +13,6 @@ import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 
-/**
- * @description: Gson工具类
- * @author: zhenglong.zhu
- * @update: 2018/11/28
- */
 public class GsonUtils {
 
     /**

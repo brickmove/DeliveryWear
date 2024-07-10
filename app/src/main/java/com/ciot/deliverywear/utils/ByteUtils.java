@@ -1,13 +1,5 @@
 package com.ciot.deliverywear.utils;
 
-
-/**
- * 字节处理工具类
- *
- * @description:
- * @author: zhenglong.zhu
- * @update: 2018/11/26
- */
 public class ByteUtils {
     /**
      * 方法说明：短整形转字节数组

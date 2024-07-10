@@ -2,6 +2,7 @@ package com.ciot.deliverywear.network.tcp
 
 import android.util.Log
 import com.blankj.utilcode.util.AppUtils
+import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.bean.HeartBeatBeanR
 import com.ciot.deliverywear.bean.ProtocolBean
 import com.ciot.deliverywear.bean.RegisterBeanR
@@ -40,6 +41,7 @@ class TcpSendMsgUtil {
         protocolBean.cflag = 0x00
         protocolBean.rflag = 0x00
         protocolBean.qa = 0x00
+        protocolBean.type = 101
         return protocolBean
     }
 
@@ -60,12 +62,12 @@ class TcpSendMsgUtil {
         register.id = MyDeviceUtils.getMacAddress()
         register.type = type
         register.version = AppUtils.getAppVersionName()
-        register.time = Date().time
+        register.time = (Date().time / 1000).toString()
         val protocolBean = getProtocolBean()
         protocolBean.seq = getSeq()
         protocolBean.cmd = NetConstant.CONTROL_DEVICE_MANAGEMENT_REGISTER
         protocolBean.body = register
-        Log.d(TAG, "发送注册平台消息: $protocolBean")
+        Log.d(TAG, "发送注册平台消息: " + GsonUtils.toJson(protocolBean))
         return protocolBean
     }
 
@@ -81,7 +83,7 @@ class TcpSendMsgUtil {
         protocolBean.cmd = NetConstant.CONTROL_STATUS_HEART_BEAT
         protocolBean.body = hearBeat
         if (protocolBean.seq % 10 == 0) {
-            Log.v(TAG, "sendHeartBeat: $protocolBean")
+            Log.v(TAG, "sendHeartBeat: " + GsonUtils.toJson(protocolBean))
         }
         return protocolBean
     }

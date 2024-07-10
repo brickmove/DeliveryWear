@@ -8,11 +8,6 @@ import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
-/**
- * @author chenxz
- * @date 2018/8/21
- * @desc 请求重连
- */
 class RetryWithDelay : Function<Observable<out Throwable>, Observable<*>> {
 
     private var maxRetryCount = 3 // 可重试次数
