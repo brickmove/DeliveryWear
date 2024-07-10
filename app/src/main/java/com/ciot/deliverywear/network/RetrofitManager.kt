@@ -199,8 +199,8 @@ class RetrofitManager {
 
         Observable.fromIterable(robotInfo)
             .flatMap { info ->
-                val id = info.id // 获取id
-                val token = getToken() // 获取token
+                val id = info.id
+                val token = getToken()
                 if (token.isNullOrEmpty()) {
                     return@flatMap Observable.never<Pair<RobotInfoResponse, AllStatusResponse>>()
                 } else {

@@ -16,6 +16,8 @@ class DealResult {
     var robotInfoList: List<RobotData>? = null
     var areaInfoList: List<String>? = null
     var pointInfoList: List<String>? = null
+    // 是否震动
+    var isVibratorOn: Boolean = false
     override fun toString(): String {
         return "DealResult(type=$type, " +
                 "selectRobotId, $selectRobotId" +

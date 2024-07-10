@@ -3,7 +3,6 @@ package com.ciot.deliverywear.network.tcp
 import android.util.Log
 import com.ciot.deliverywear.bean.EventBusBean
 import com.ciot.deliverywear.constant.ConstantLogic
-import com.ciot.deliverywear.constant.NetConstant
 import org.greenrobot.eventbus.EventBus
 import java.io.InputStream
 import java.io.OutputStream

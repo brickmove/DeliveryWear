@@ -441,6 +441,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 val dealResult = DealResult()
                 dealResult.selectPoint = arrivedPoint
                 dealResult.navInfo = "Arriving To "
+                dealResult.isVibratorOn = true
                 updateFragment(ConstantLogic.MSG_TYPE_HEADING, dealResult)
             }
             ConstantLogic.EVENT_RECONNECT_TCP -> {
