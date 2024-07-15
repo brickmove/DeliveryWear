@@ -14,7 +14,7 @@ import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.dialog.SwitchProjectDialog
 
-class GatewayFragment : BaseFragment() {
+class GatewayFragment : BaseFragment(), SwitchProjectDialog.DialogListener {
     companion object {
         private const val TAG = "GatewayFragment"
     }
@@ -45,12 +45,7 @@ class GatewayFragment : BaseFragment() {
         cnServerCard = view?.findViewById(R.id.cn_server)
         devServerCard = view?.findViewById(R.id.dev_server)
 
-        when (RetrofitManager.instance.getDefaultServer()) {
-            NetConstant.CN_SERVICE_URL -> cnServerText?.let { setTextColor(it, R.color.yellow) }
-            NetConstant.HK_SERVICE_URL -> hkServerText?.let { setTextColor(it, R.color.yellow) }
-            NetConstant.US_SERVICE_URL -> usServerText?.let { setTextColor(it, R.color.yellow) }
-            NetConstant.DEV_SERVICE_URL -> devServerText?.let { setTextColor(it, R.color.yellow) }
-        }
+        setDefaultColor()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -92,7 +87,7 @@ class GatewayFragment : BaseFragment() {
             usServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             hkServerText?.let { it1 -> setTextColor(it1, R.color.white) }
             devServerText?.let { it1 -> setTextColor(it1, R.color.yellow) }
-            showSwitchDialog(NetConstant.CN_SERVICE_URL)
+            showSwitchDialog(NetConstant.DEV_SERVICE_URL)
         }
     }
 
@@ -104,6 +99,7 @@ class GatewayFragment : BaseFragment() {
     private fun showSwitchDialog(server: String) {
         if (mSwitchDialog?.dialog?.isShowing != true) {
             mSwitchDialog = SwitchProjectDialog(server)
+            mSwitchDialog!!.setDialogListener(this)
             mSwitchDialog?.show(childFragmentManager, "ScanSwitchProjectDialog")
             Log.d(TAG,"showSwitchDialog>>>>>>")
         }
@@ -114,10 +110,28 @@ class GatewayFragment : BaseFragment() {
         }
     }
 
+    private fun setDefaultColor() {
+        cnServerText?.let { setTextColor(it, R.color.white) }
+        hkServerText?.let { setTextColor(it, R.color.white) }
+        usServerText?.let { setTextColor(it, R.color.white) }
+        devServerText?.let { setTextColor(it, R.color.white) }
+        when (RetrofitManager.instance.getDefaultServer()) {
+            NetConstant.CN_SERVICE_URL -> cnServerText?.let { setTextColor(it, R.color.yellow) }
+            NetConstant.HK_SERVICE_URL -> hkServerText?.let { setTextColor(it, R.color.yellow) }
+            NetConstant.US_SERVICE_URL -> usServerText?.let { setTextColor(it, R.color.yellow) }
+            NetConstant.DEV_SERVICE_URL -> devServerText?.let { setTextColor(it, R.color.yellow) }
+        }
+    }
+
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
         if (hidden) {
             dismissSwitchDialog()
         }
+        setDefaultColor()
+    }
+
+    override fun onDialogClosed() {
+        setDefaultColor()
     }
 }

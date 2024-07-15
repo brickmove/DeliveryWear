@@ -17,7 +17,7 @@ import kotlin.concurrent.schedule
  * Encoding: utf-8
  */
 class TcpClient(private val serverIp: String, private val serverPort: Int) {
-    private var TAG = ConstantLogic.NETWORK_TAG
+    private var TAG = ConstantLogic.TCP_TAG
     private lateinit var socket: Socket
     private lateinit var input: InputStream
     private lateinit var output: OutputStream

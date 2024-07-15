@@ -1,6 +1,7 @@
 package com.ciot.deliverywear.ui.fragment
 
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +18,12 @@ class SettingFragment : BaseFragment() {
     companion object {
         private const val TAG = "SettingFragment"
     }
+    //连续点击次数
+    private val mCounts: Int = 8
+    //连续点击有效时间
+    private val mDuration: Long = 2 * 1000
+    private var mProjectHits = LongArray(mCounts)
+    private var mGatewayHits = LongArray(mCounts)
 
     private var settingProject: CardView? = null
     private var settingProjectName: TextView? = null
@@ -45,11 +52,27 @@ class SettingFragment : BaseFragment() {
 
     private fun initListener() {
         settingProject?.setOnClickListener {
-            (activity as MainActivity).updateFragment(ConstantLogic.MSG_TYPE_BIND, DealResult())
+            System.arraycopy(mProjectHits, 1, mProjectHits, 0, mProjectHits.size - 1)
+            mProjectHits[mProjectHits.size - 1] = SystemClock.uptimeMillis()
+            if (mProjectHits[0] >= (SystemClock.uptimeMillis() - mDuration)) {
+                (activity as MainActivity).updateFragment(ConstantLogic.MSG_TYPE_BIND, DealResult())
+            }
         }
 
         settingGateway?.setOnClickListener {
-            (activity as MainActivity).updateFragment(ConstantLogic.MSG_TYPE_GATEWAY, DealResult())
+            System.arraycopy(mGatewayHits, 1, mGatewayHits, 0, mGatewayHits.size - 1)
+            mGatewayHits[mGatewayHits.size - 1] = SystemClock.uptimeMillis()
+            if (mGatewayHits[0] >= (SystemClock.uptimeMillis() - mDuration)) {
+                (activity as MainActivity).updateFragment(ConstantLogic.MSG_TYPE_GATEWAY, DealResult())
+            }
+        }
+    }
+
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (hidden) {
+            mProjectHits = LongArray(mCounts)
+            mGatewayHits = LongArray(mCounts)
         }
     }
 }
