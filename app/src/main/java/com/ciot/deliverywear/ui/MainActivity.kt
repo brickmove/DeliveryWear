@@ -88,6 +88,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "MainActivity onCreate start")
         prefManager = PrefManager(this)
+        ContextUtil.setContext(this)
         window.setFlags(
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
@@ -327,7 +328,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             override fun run() {
                 val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
                 binding.headView.timeTextView.text = timeFormat.format(Date())
-                curTimeHandler.postDelayed(this, 1000) // 每秒更新一次时间
+                curTimeHandler.postDelayed(this, 60000)
             }
         }
         curTimeHandler.post(updateTimeRunnable)

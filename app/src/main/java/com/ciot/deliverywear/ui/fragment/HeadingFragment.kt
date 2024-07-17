@@ -13,6 +13,7 @@ import com.ciot.deliverywear.R
 import com.ciot.deliverywear.bean.DealResult
 import com.ciot.deliverywear.ui.MainActivity
 import com.ciot.deliverywear.ui.base.BaseFragment
+import com.ciot.deliverywear.utils.VibrationUtils
 
 class HeadingFragment : BaseFragment() {
     private var headingText: TextView? = null
@@ -20,12 +21,10 @@ class HeadingFragment : BaseFragment() {
     private var headingCancel: Button? = null
     private var countdownTimer: CountDownTimer? = null
     private lateinit var localRobot: String
-    private var vibrator: Vibrator? = null
     private var isVibrate: Boolean = false
 
     override fun onCreateView(inflater : LayoutInflater, container : ViewGroup?, savedInstanceState : Bundle?) : View? {
         val view = inflater.inflate(R.layout.fragment_heading, container, false)
-        vibrator = (activity as MainActivity).getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         return view
     }
 
@@ -34,7 +33,7 @@ class HeadingFragment : BaseFragment() {
         val countDownInterval = 1000L // 每秒减少一次
         val totalDuration = 5000L // 总时长为5秒
         if (isVibrate) {
-            vibrator?.vibrate(5000) // 震动5s
+            VibrationUtils.vibrate(requireContext(), 5000) // 震动5s
         }
         countdownTimer = object : CountDownTimer(totalDuration, countDownInterval) {
             override fun onTick(millisUntilFinished: Long) {
@@ -46,7 +45,7 @@ class HeadingFragment : BaseFragment() {
             override fun onFinish() {
                 // 倒计时结束返回首页
                 (activity as MainActivity).showHome()
-                vibrator?.cancel()
+                VibrationUtils.cancelVibration(requireContext())
             }
         }.start()
     }
@@ -89,7 +88,7 @@ class HeadingFragment : BaseFragment() {
         super.onHiddenChanged(hidden)
         if (hidden){
             countdownTimer?.cancel()
-            vibrator?.cancel()
+            VibrationUtils.cancelVibration(requireContext())
         } else {
             countdownTimer?.start()
         }
