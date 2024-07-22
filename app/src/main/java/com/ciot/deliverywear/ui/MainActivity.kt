@@ -35,7 +35,7 @@ import com.ciot.deliverywear.ui.fragment.StandbyFragment
 import com.ciot.deliverywear.ui.fragment.WelcomeFragment
 import com.ciot.deliverywear.utils.ContextUtil
 import com.ciot.deliverywear.utils.MyDeviceUtils
-import com.ciot.deliverywear.utils.PrefManager
+import com.ciot.deliverywear.utils.SPUtils
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -50,7 +50,7 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity() , View.OnClickListener {
     private var mCompositeDisposable: CompositeDisposable? = null
-    private var prefManager: PrefManager? = null
+    private var spUtils: SPUtils? = null
 
     companion object {
         private const val TAG = "MainActivity"
@@ -71,10 +71,10 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     fun setBindInfo(key: String, server: String) {
         Log.d(TAG, "setBindInfo key: $key")
-        prefManager?.bindKey = key
-        prefManager?.isBound = true
-        prefManager?.isFirstTimeLaunch = false
-        prefManager?.bindServer = server
+        spUtils?.getInstance()?.putString(ConstantLogic.BIND_KEY, key)
+        spUtils?.getInstance()?.putString(ConstantLogic.BIND_SERVER, server)
+        spUtils?.getInstance()?.putBoolean(ConstantLogic.IS_BOUND, true)
+        spUtils?.getInstance()?.putBoolean(ConstantLogic.IS_FIRST_TIME_LAUNCH, false)
     }
 
     private lateinit var binding: ActivityMainBinding
@@ -87,8 +87,8 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "MainActivity onCreate start")
-        prefManager = PrefManager(this)
         ContextUtil.setContext(this)
+        spUtils = SPUtils()
         window.setFlags(
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     override fun onResume() {
         super.onResume()
         initListener()
-        if (prefManager?.isFirstTimeLaunch == true) {
+        if (spUtils?.getInstance()?.getBoolean(ConstantLogic.IS_FIRST_TIME_LAUNCH, true) == true) {
             showWelcome()
         }
 
@@ -126,10 +126,11 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     }
 
     private fun initData() {
-        if (prefManager?.bindServer.isNullOrEmpty()) {
-            prefManager?.bindServer = NetConstant.DEFAULT_SERVICE_URL
+        if (spUtils?.getInstance()?.getString(ConstantLogic.BIND_SERVER).isNullOrEmpty()) {
+            spUtils?.getInstance()?.putString(ConstantLogic.BIND_SERVER, NetConstant.DEFAULT_SERVICE_URL)
         }
-        RetrofitManager.instance.setDefaultServer(prefManager?.bindServer.toString())
+        spUtils?.getInstance()?.getString(ConstantLogic.BIND_SERVER)
+            ?.let { RetrofitManager.instance.setDefaultServer(it) }
         RetrofitManager.instance.setTcpIp(NetConstant.IP_DEV)
     }
 
@@ -235,8 +236,8 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         Log.d(TAG, "initWatch start")
         val mac = MyDeviceUtils.getMacAddress()
         RetrofitManager.instance.setWuHanUserName(mac)
-        val code = prefManager?.bindKey
-        if (prefManager?.isBound == true && code != null) {
+        val code = spUtils?.getInstance()?.getString(ConstantLogic.BIND_KEY)
+        if (spUtils?.getInstance()?.getBoolean(ConstantLogic.IS_BOUND) == true && code != null) {
             Log.d(TAG, "project code isBound, code=$code")
             //showLoadingDialog()
             RetrofitManager.instance.setWuHanPassWord(code)
@@ -278,7 +279,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 if (currentfragment is PointFragment || currentfragment is SettingFragment) {
                     showHome()
                 } else if (currentfragment is BindingFragment) {
-                    if (prefManager?.isFirstTimeLaunch == true) {
+                    if (spUtils?.getInstance()?.getBoolean(ConstantLogic.IS_FIRST_TIME_LAUNCH, true) == true) {
                         showWelcome()
                     } else {
                         showSetting()

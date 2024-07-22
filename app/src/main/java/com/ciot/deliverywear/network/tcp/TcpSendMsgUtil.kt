@@ -8,6 +8,7 @@ import com.ciot.deliverywear.bean.ProtocolBean
 import com.ciot.deliverywear.bean.RegisterBeanR
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.constant.NetConstant
+import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.utils.MyDeviceUtils
 import java.util.Date
 
@@ -59,7 +60,8 @@ class TcpSendMsgUtil {
      */
     fun sendRegisterWatch(): ProtocolBean {
         val register = RegisterBeanR()
-        register.id = MyDeviceUtils.getMacAddress()
+        //register.id = MyDeviceUtils.getMacAddress()
+        register.id = RetrofitManager.instance.getWuHanUserName()
         register.type = type
         register.version = AppUtils.getAppVersionName()
         register.time = (Date().time / 1000).toString()
@@ -76,7 +78,8 @@ class TcpSendMsgUtil {
      */
     fun sendHeartBeat(): ProtocolBean {
         val hearBeat = HeartBeatBeanR()
-        hearBeat.id = MyDeviceUtils.getMacAddress()
+        //hearBeat.id = MyDeviceUtils.getMacAddress()
+        hearBeat.id = RetrofitManager.instance.getWuHanUserName()
         hearBeat.time = Date().time
         val protocolBean = getProtocolBean()
         protocolBean.seq = getSeq()

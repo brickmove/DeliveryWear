@@ -8,6 +8,7 @@
     <style name="KeyButton" parent="Widget.AppCompat.Button">
         <item name="android:layout_width">66dp</item>
         <item name="android:layout_height">32dp</item>
+        <item name="android:clickable">true</item>
         <item name="android:background">@drawable/pwd_background_selector</item>
         <item name="android:textColor">@drawable/pwd_num_selector</item>
         <item name="android:fontFamily">@font/lexend_medium</item>

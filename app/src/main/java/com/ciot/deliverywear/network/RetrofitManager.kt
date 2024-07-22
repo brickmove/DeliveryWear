@@ -191,11 +191,15 @@ class RetrofitManager {
         val res: RobotAllResponse = body
         val total: Int? = res.total
         val robotInfo: List<RobotInfoResponse>? = res.datas
-        if (total == null || total == 0 || robotInfo.isNullOrEmpty()) {
-            return
-        }
         mRobotId = mutableListOf()
         mRobotData = mutableListOf()
+        if (total == null || total == 0 || robotInfo.isNullOrEmpty()) {
+            Log.d(TAG, "parseRobotAllResponseBody robotInfo is empty............")
+            val eventBusBean = EventBusBean()
+            eventBusBean.eventType = ConstantLogic.EVENT_SHOW_HOME
+            EventBus.getDefault().post(eventBusBean)
+            return
+        }
 
         Observable.fromIterable(robotInfo)
             .flatMap { info ->
@@ -223,7 +227,8 @@ class RetrofitManager {
                     robotData.id = info.id
                     robotData.name = info.name
                     robotData.link = info.link == true
-                    robotData.label = status.getState()?.let { it1 -> FormatUtil.formatLable(it1) }
+                    robotData.label =
+                        status.getState()?.let { it1 -> FormatUtil.formatLable(it1) }
                     robotData.battery = status.getBatteryInfo()?.getBattery()
                     mRobotData!!.add(robotData)
                     if (info.id.isNullOrEmpty()) {
@@ -234,7 +239,7 @@ class RetrofitManager {
                 }
 
                 override fun onError(e: Throwable) {
-                    Log.w(TAG,"onError: ${e.message}")
+                    Log.w(TAG, "onError: ${e.message}")
                 }
 
                 override fun onComplete() {

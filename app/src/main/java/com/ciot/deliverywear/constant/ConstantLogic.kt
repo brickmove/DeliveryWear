@@ -23,5 +23,11 @@ interface ConstantLogic {
         const val EVENT_ARRIVED_POINT = "EVENT_ARRIVED_POINT" // 到达点位
         const val EVENT_SHOW_HOME = "EVENT_SHOW_HOME"         // 显示首页
         const val EVENT_RECONNECT_TCP = "EVENT_RECONNECT_TCP" // 重连tcp
+
+        // SharedPreferences val
+        const val BIND_KEY = "BIND_KEY"
+        const val BIND_SERVER = "BIND_SERVER"
+        const val IS_BOUND = "IS_BOUND"
+        const val IS_FIRST_TIME_LAUNCH = "IS_FIRST_TIME_LAUNCH"
     }
 }

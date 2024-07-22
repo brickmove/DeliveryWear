@@ -1,5 +1,4 @@
 package com.ciot.deliverywear.network.tcp;
-import android.util.Log;
 import com.ciot.deliverywear.bean.ProtocolBean;
 import com.ciot.deliverywear.utils.ByteUtils;
 import com.ciot.deliverywear.utils.GsonUtils;
@@ -69,7 +68,7 @@ public class TcpRequestUtils {
         System.arraycopy(beanBytes, 11, shortbytes, 0, 2);
         short cmd = ByteUtils.bytes2short(shortbytes);
         protocolBean.setCmd(cmd);
-        Log.d("body_tag", "cmd:"+cmd +";bytes2Bean: "+ body);
+        //Log.d("body_tag", "cmd:"+cmd +";bytes2Bean: "+ body);
 
         System.arraycopy(beanBytes, 9, shortbytes, 0, 2);
         short type = ByteUtils.bytes2short(shortbytes);
