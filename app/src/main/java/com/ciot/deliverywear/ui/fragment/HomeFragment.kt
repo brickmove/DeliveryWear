@@ -146,7 +146,11 @@ class HomeFragment: BaseFragment() {
                 robotData.name = it.name
                 robotData.link = it.link
                 robotData.label = it.label?.let { it1 -> FormatUtil.formatLable(it1) }
-                robotData.battery= 60
+                if (it.battery == null) {
+                    robotData.battery = -1
+                } else {
+                    robotData.battery = it.battery
+                }
                 mDataList.add(robotData)
             }
             Log.w(TAG, "HomeFragment mDataList: " + GsonUtils.toJson(mDataList))

@@ -256,6 +256,7 @@ class BindingFragment : BaseFragment() {
             isEdit = false
             countdownTimer?.cancel()
             dismissSuccessDialog()
+            errorHint?.visibility = View.GONE
         }
     }
 
