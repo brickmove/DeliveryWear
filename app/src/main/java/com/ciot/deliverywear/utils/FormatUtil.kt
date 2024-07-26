@@ -1,5 +1,5 @@
 package com.ciot.deliverywear.utils
-
+import java.util.UUID
 
 class FormatUtil {
     companion object {
@@ -15,6 +15,12 @@ class FormatUtil {
                 else -> "Idle"
             }
             return newLable
+        }
+
+        fun createNid(): String {
+            val uuid = UUID.randomUUID()
+            val uniqueId = uuid.toString()
+            return uniqueId
         }
     }
 }

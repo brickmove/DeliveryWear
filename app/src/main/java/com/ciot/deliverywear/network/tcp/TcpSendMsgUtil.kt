@@ -9,7 +9,6 @@ import com.ciot.deliverywear.bean.RegisterBeanR
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.constant.NetConstant
 import com.ciot.deliverywear.network.RetrofitManager
-import com.ciot.deliverywear.utils.MyDeviceUtils
 import java.util.Date
 
 /**
@@ -18,7 +17,7 @@ import java.util.Date
  * Encoding: utf-8
  */
 class TcpSendMsgUtil {
-    private var TAG = ConstantLogic.NETWORK_TAG
+    private var TAG = ConstantLogic.TCP_TAG
     private var mSeq: Int = 1
     private var type: Int = 101
 

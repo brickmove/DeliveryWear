@@ -100,7 +100,7 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
                     output.flush()
 
                 } catch (e: Exception) {
-                    Log.e(TAG, "TCP sendHeartbeat error: $e")
+                    Log.e(TAG, "TCP sendHeartbeat error: $e, isReconnecting: $isReconnecting")
                     if (!isReconnecting) {
                         startReconnect() // 发送心跳失败后开始重连
                     }

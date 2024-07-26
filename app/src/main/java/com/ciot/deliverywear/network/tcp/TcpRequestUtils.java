@@ -1,4 +1,5 @@
 package com.ciot.deliverywear.network.tcp;
+
 import com.ciot.deliverywear.bean.ProtocolBean;
 import com.ciot.deliverywear.utils.ByteUtils;
 import com.ciot.deliverywear.utils.GsonUtils;

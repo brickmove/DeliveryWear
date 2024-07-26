@@ -1,5 +1,7 @@
 package com.ciot.deliverywear.network.tcp
 
+import android.util.Log
+import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.bean.ArrivedBean
 import com.ciot.deliverywear.bean.EventBusBean
 import com.ciot.deliverywear.bean.ResultBean
@@ -14,11 +16,13 @@ import org.greenrobot.eventbus.EventBus
  * Encoding: utf-8
  */
 class TcpMsgListener: TcpClientListener {
-    private var TAG = ConstantLogic.NETWORK_TAG
+    private var TAG = ConstantLogic.TCP_TAG
     override fun onMessageReceived(message: ByteArray) {
         // 解析并处理收到的消息
         val receive = TcpRequestUtils.bytes2Bean(message)
-        //Log.d(TAG, "TcpMsgListener receive: " + GsonUtils.toJson(receive))
+        if (receive.cmd != NetConstant.CONTROL_STATUS_HEART_BEAT) {
+            Log.d(TAG, "TcpMsgListener receive: " + GsonUtils.toJson(receive))
+        }
         if (receive.cmd == NetConstant.CONTROL_DEVICE_MANAGEMENT_REGISTER) {
             val response: ResultBean = receive.body as ResultBean
             if (response.result == 0) {
@@ -30,8 +34,14 @@ class TcpMsgListener: TcpClientListener {
             val response: ArrivedBean = receive.body as ArrivedBean
             val eventBusBean = EventBusBean()
             eventBusBean.eventType = ConstantLogic.EVENT_ARRIVED_POINT
-            eventBusBean.content = response.info
-            EventBus.getDefault().post(eventBusBean)
+            val nid = response.getNid()
+            if (nid != null) {
+                val placeName = RetrofitManager.instance.getPlaceName(nid)
+                if (placeName != null) {
+                    eventBusBean.content = placeName
+                    EventBus.getDefault().post(eventBusBean)
+                }
+            }
         }
     }
 }

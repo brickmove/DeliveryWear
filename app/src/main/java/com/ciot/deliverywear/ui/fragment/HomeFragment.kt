@@ -55,6 +55,7 @@ class HomeFragment: BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initAdapter()
         initListener()
     }
 
@@ -63,13 +64,6 @@ class HomeFragment: BaseFragment() {
             val dealResult = DealResult()
             (activity as MainActivity).updateFragment(ConstantLogic.MSG_TYPE_SETTING, dealResult)
         }
-    }
-
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        initAdapter()
     }
 
     private fun initAdapter() {
@@ -128,6 +122,9 @@ class HomeFragment: BaseFragment() {
     @SuppressLint("NotifyDataSetChanged")
     override fun refreshData(isRefreshImmediately: Boolean, data: DealResult) {
         Log.w(TAG, "HomeFragment refreshData: " + GsonUtils.toJson(data))
+//        if (isDetached){
+//            return
+//        }
         if (mDataList.size > 0) {
             mDataList.clear()
         }
@@ -147,7 +144,7 @@ class HomeFragment: BaseFragment() {
                 robotData.link = it.link
                 robotData.label = it.label?.let { it1 -> FormatUtil.formatLable(it1) }
                 if (it.battery == null) {
-                    robotData.battery = -1
+                    robotData.battery = 60
                 } else {
                     robotData.battery = it.battery
                 }

@@ -1,5 +1,7 @@
 package com.ciot.deliverywear.ui.dialog
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.view.LayoutInflater
@@ -22,6 +24,15 @@ class LoadingDialog : DialogFragment() {
 
     override fun onStart() {
         dialog?.window?.setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+        //hideBottomUIMenu()
+        dialog?.window?.apply {
+            setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
+            setBackgroundDrawable(ColorDrawable(Color.parseColor("#CC000000")))
+        }
         super.onStart()
     }
 

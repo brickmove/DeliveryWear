@@ -118,6 +118,8 @@ dependencies {
     implementation 'androidx.databinding:databinding-runtime:8.5.0'
     implementation 'org.greenrobot:eventbus:3.2.0'
     implementation 'com.google.android.material:material:1.12.0'
+//    debugImplementation 'com.readystatesoftware.chuck:library:1.1.0'
+//    releaseImplementation 'com.readystatesoftware.chuck:library-no-op:1.1.0'
     /* 新增 */
     androidTestImplementation platform('androidx.compose:compose-bom:2024.06.00')
     testImplementation 'junit:junit:4.13.2'

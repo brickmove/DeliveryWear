@@ -2,13 +2,8 @@ package com.ciot.deliverywear.constant
 
 
 object NetConstant {
-    const val TAG = "NETWORK_TAG"
-    const val HTTP_URL = "http://"
-    const val DEFAULT_TIMEOUT: Long = 60
-    // 是否绑定平台
-    var isBind: Boolean = false
-    // 密钥文件
-    var bindFile: String = ""
+    const val DEFAULT_TIMEOUT: Long = 20
+
     // 平台地址
     const val IP_DEV: String = "dev.csstrobot.com"
     private const val IP_CN: String = "robot.csstrobot.com"
@@ -18,9 +13,9 @@ object NetConstant {
     var DEFAULT_SERVICE_URL = "http://$IP_DEV:9899/"
 
     var DEV_SERVICE_URL = "http://$IP_DEV:9899/"
-    var CN_SERVICE_URL = "https://$IP_CN:9899/"
-    var US_SERVICE_URL = "https://$IP_US:9899/"
-    var HK_SERVICE_URL = "https://$IP_HK:9899/"
+    var CN_SERVICE_URL = "http://$IP_CN:9899/"
+    var US_SERVICE_URL = "http://$IP_US:9899/"
+    var HK_SERVICE_URL = "http://$IP_HK:9899/"
 
     /*武汉服务器初始化状态*/
     //0表示获取到TCP长连接的IP;1表示激活成功获取到账户和密码;2表示登录成功;3表示获取到token;4表示获取到projectId等属性信息

@@ -17,6 +17,8 @@ import com.ciot.deliverywear.bean.RobotData
 import com.ciot.deliverywear.bean.RobotInfoResponse
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.constant.NetConstant
+import com.ciot.deliverywear.network.interceptor.HttpLoggingInterceptor
+import com.ciot.deliverywear.network.interceptor.TokenInterceptor
 import com.ciot.deliverywear.network.tcp.RetryWithDelay
 import com.ciot.deliverywear.network.tcp.TcpClient
 import com.ciot.deliverywear.network.tcp.TcpMsgListener
@@ -39,8 +41,15 @@ import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import java.net.Proxy
+import java.security.SecureRandom
+import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 // 服务器网络请求管理类
 class RetrofitManager {
@@ -60,6 +69,9 @@ class RetrofitManager {
     private var isLoadingSuccess: AtomicReference<Boolean> = AtomicReference(false)
     private var defaultServer: AtomicReference<String> = AtomicReference()
     private var tcpIp: AtomicReference<String> = AtomicReference()
+
+    @Volatile
+    private var mNidMap: MutableMap<String, String>? = HashMap()
     @Volatile
     private var mRobotId: MutableList<String>? = mutableListOf()
     @Volatile
@@ -91,7 +103,7 @@ class RetrofitManager {
             Log.d(TAG, "getWuHanBaseUrl=$wuHanBaseUrl")
             mWuhanApiService = Retrofit.Builder()
                 .baseUrl(wuHanBaseUrl)
-                .client(getOkHttpClient(TAG, true))
+                .client(getOkHttpClient(ConstantLogic.HTTP_TAG, true))
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
@@ -174,17 +186,37 @@ class RetrofitManager {
         }
     }
 
-    fun getRobotsForHome() : Observable<RobotAllResponse>? {
+    fun getRobotsForHome() {
         val token = getToken()
         val project = getProject()
         if (token.isNullOrEmpty() || project.isNullOrEmpty()) {
             Log.e(TAG, "getRobotsForHome param err--->token: $token, project: $project")
-            return null
+            return
         }
         val start ="0"
         val limit ="100"
         Log.d(TAG, "getRobotsForHome param--->token: $token, project: $project")
-        return getWuHanApiService().findRobotByProject(token, project, start, limit)
+        getWuHanApiService().findRobotByProject(token, project, start, limit)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object:Observer<RobotAllResponse>{
+                override fun onSubscribe(d: Disposable) {
+                    addSubscription(d)
+                }
+
+                override fun onNext(body: RobotAllResponse) {
+                    Log.d(TAG, "RobotAllResponse: " + GsonUtils.toJson(body))
+                    parseRobotAllResponseBody(body)
+                }
+
+                override fun onError(e: Throwable) {
+                    Log.w(TAG,"onError: ${e.message}")
+                }
+
+                override fun onComplete() {
+
+                }
+            })
     }
 
     fun parseRobotAllResponseBody(body: RobotAllResponse) {
@@ -239,7 +271,7 @@ class RetrofitManager {
                 }
 
                 override fun onError(e: Throwable) {
-                    Log.w(TAG, "onError: ${e.message}")
+                    Log.w(TAG, "parseRobotAllResponseBody onError: ${e.message}")
                 }
 
                 override fun onComplete() {
@@ -281,6 +313,9 @@ class RetrofitManager {
         val jsonObject = JsonObject()
         jsonObject.addProperty("id", id)
         jsonObject.addProperty("positionname", positionName)
+//        val nid = FormatUtil.createNid()
+//        mNidMap?.put(nid, positionName)
+        jsonObject.addProperty("nid", setNidMap(positionName))
         Log.d(TAG, "navPoint jsonObject: " + GsonUtils.toJson(jsonObject))
         val body =  RequestBody.create(
             "application/json; charset=utf-8".toMediaTypeOrNull(),
@@ -323,7 +358,7 @@ class RetrofitManager {
     }
 
     private fun getOkHttpClient(): OkHttpClient {
-        return getOkHttpClient(TAG)
+        return getOkHttpClient(ConstantLogic.HTTP_TAG)
     }
 
     private fun getOkHttpClient(tag: String, reLoginWhenTokenInvalid: Boolean = false): OkHttpClient {
@@ -331,6 +366,8 @@ class RetrofitManager {
         //设置 请求的缓存的大小跟位置
         try {
             builder.run {
+                addInterceptor(HttpLoggingInterceptor(tag))
+                //addInterceptor(ChuckInterceptor(ContextUtil.getContext()))
                 if (reLoginWhenTokenInvalid) {
                     addInterceptor(TokenInterceptor {
                         login()
@@ -341,6 +378,11 @@ class RetrofitManager {
                 writeTimeout(NetConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
                 retryOnConnectionFailure(true) // 错误重连
                 proxy(Proxy.NO_PROXY) //防止被抓包，提升安全性
+                val sslSocketFactory = createSSLSocketFactory()
+                if (null != sslSocketFactory) {
+                    sslSocketFactory(sslSocketFactory, TrustAllCerts())
+                    hostnameVerifier { _, _ -> true }
+                }
                 // cookieJar(CookieManager())
                 Log.d(TAG, "getOkHttpClient")
             }
@@ -348,6 +390,33 @@ class RetrofitManager {
             Log.e(TAG, "getOkHttpClient Exception：$e")
         }
         return builder.build()
+    }
+
+    private fun createSSLSocketFactory(): SSLSocketFactory? {
+        var ssfFactory: SSLSocketFactory? = null
+        try {
+            val sc = SSLContext.getInstance("TLS")
+            sc.init(null, arrayOf<TrustManager>(TrustAllCerts()), SecureRandom())
+            ssfFactory = sc.socketFactory
+        } catch (e: java.lang.Exception) {
+        }
+        return ssfFactory
+    }
+
+    //自定义SS验证相关类
+    private class TrustAllCerts : X509TrustManager {
+
+        @Throws(CertificateException::class)
+        override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
+        }
+
+        @Throws(CertificateException::class)
+        override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+        }
+
+        override fun getAcceptedIssuers(): Array<X509Certificate?> {
+            return arrayOfNulls(0)
+        }
     }
 
     /**
@@ -406,7 +475,7 @@ class RetrofitManager {
         root.put("password", getWuHanPassWord())
 
         val requestBody: RequestBody = RequestBody.create("application/json; charset=utf-8".toMediaTypeOrNull(), root.toString())
-        Log.d(TAG, "ready login wuhan Server, requestBody: $requestBody")
+        Log.d(TAG, "ready login wuhan Server, requestBody: " + GsonUtils.toJson(requestBody))
         return requestBody
     }
 
@@ -561,7 +630,17 @@ class RetrofitManager {
         return tcpClient
     }
 
-    private fun onUnsubscribe() {
+    fun setNidMap(value: String): String {
+        val nid = FormatUtil.createNid()
+        mNidMap?.put(nid, value)
+        return nid
+    }
+
+    fun getPlaceName(key: String): String? {
+        return mNidMap?.get(key)
+    }
+
+    fun onUnsubscribe() {
         if (mCompositeDisposable != null) {
             mCompositeDisposable!!.clear()
         }

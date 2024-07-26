@@ -1,6 +1,8 @@
-package com.ciot.deliverywear.network;
+package com.ciot.deliverywear.network.interceptor;
 
 import android.text.TextUtils;
+
+import com.ciot.deliverywear.network.RetrofitManager;
 
 import java.io.IOException;
 

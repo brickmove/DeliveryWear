@@ -7,6 +7,7 @@ interface ConstantLogic {
         const val FRAGMENT = "FRAGMENT"
         const val NETWORK_TAG = "NETWORK_TAG"
         const val TCP_TAG = "TCP_TAG"
+        const val HTTP_TAG = "HTTP_TAG"
 
         // fragment
         const val MSG_TYPE_HOME = 0 // 主页

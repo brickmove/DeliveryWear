@@ -1,5 +1,6 @@
 package com.ciot.deliverywear.utils;
 
+import com.ciot.deliverywear.bean.ArrivedBean;
 import com.ciot.deliverywear.bean.HeartBeatBeanR;
 import com.ciot.deliverywear.bean.RegisterBeanR;
 import com.ciot.deliverywear.bean.ResultBean;
@@ -8,7 +9,6 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -24,11 +24,6 @@ public class GsonUtils {
     private static Gson gson;
 
     /**
-     * JsonType
-     */
-    private static Type sRegisterControlJsonType, sHeartBeatRJsonType, sResultJsonType;
-
-    /**
      * 获得请求的data实体类型
      *
      * @param cmd 命令字
@@ -38,31 +33,22 @@ public class GsonUtils {
         switch (cmd) {
             case NetConstant.CONTROL_DEVICE_MANAGEMENT_REGISTER:
                 if (qa == REQUEST_QA) {
-                    if (sRegisterControlJsonType == null) {
-                        sRegisterControlJsonType = new TypeToken<RegisterBeanR>() {
-                        }.getType();
-                    }
-                    return sRegisterControlJsonType;
+                    return RegisterBeanR.class;
                 } else {
-                    if (sResultJsonType == null) {
-                        sResultJsonType = new TypeToken<ResultBean>() {
-                        }.getType();
-                    }
-                    return sResultJsonType;
+                    return ResultBean.class;
+                }
+
+            case NetConstant.CONTROL_STATUS_ARRIVED_POINT:
+                if (qa == REQUEST_QA) {
+                    return ArrivedBean.class;
+                } else {
+                    return ResultBean.class;
                 }
             default:
                 if (qa == REQUEST_QA) {
-                    if (sHeartBeatRJsonType == null) {
-                        sHeartBeatRJsonType = new TypeToken<HeartBeatBeanR>() {
-                        }.getType();
-                    }
-                    return sHeartBeatRJsonType;
+                    return HeartBeatBeanR.class;
                 } else {
-                    if (sResultJsonType == null) {
-                        sResultJsonType = new TypeToken<ResultBean>() {
-                        }.getType();
-                    }
-                    return sResultJsonType;
+                    return ResultBean.class;
                 }
         }
     }

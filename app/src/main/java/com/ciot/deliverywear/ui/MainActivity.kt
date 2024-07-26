@@ -13,11 +13,11 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.GsonUtils
+import com.blankj.utilcode.util.ThreadUtils
 import com.ciot.deliverywear.R
 import com.ciot.deliverywear.bean.DealResult
 import com.ciot.deliverywear.bean.EventBusBean
 import com.ciot.deliverywear.bean.NavPointResponse
-import com.ciot.deliverywear.bean.RobotAllResponse
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.constant.NetConstant
 import com.ciot.deliverywear.databinding.ActivityMainBinding
@@ -44,6 +44,7 @@ import io.reactivex.schedulers.Schedulers
 import okhttp3.ResponseBody
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -148,29 +149,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         if (currentfragment is HomeFragment) {
             return
         }
-        //showLoadingDialog()
+        showLoadingDialog()
         Log.d(TAG, "MainActivity showHome >>>>>>>>>")
         RetrofitManager.instance.getRobotsForHome()
-            ?.subscribeOn(Schedulers.io())
-            ?.observeOn(AndroidSchedulers.mainThread())
-            ?.subscribe(object:Observer<RobotAllResponse>{
-                override fun onSubscribe(d: Disposable) {
-                    addSubscription(d)
-                }
-
-                override fun onNext(body: RobotAllResponse) {
-                    Log.d(TAG, "RobotAllResponse: " + GsonUtils.toJson(body))
-                    RetrofitManager.instance.parseRobotAllResponseBody(body)
-                }
-
-                override fun onError(e: Throwable) {
-                    Log.w(TAG,"onError: ${e.message}")
-                }
-
-                override fun onComplete() {
-
-                }
-            })
     }
 
     fun showNav(robotId: String) {
@@ -232,6 +213,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         cancelView?.setOnClickListener(this)
     }
 
+    private var loginRetryCount: Int = 1
     private fun initWatch() {
         Log.d(TAG, "initWatch start")
         val mac = MyDeviceUtils.getMacAddress()
@@ -239,30 +221,42 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         val code = spUtils?.getInstance()?.getString(ConstantLogic.BIND_KEY)
         if (spUtils?.getInstance()?.getBoolean(ConstantLogic.IS_BOUND) == true && code != null) {
             Log.d(TAG, "project code isBound, code=$code")
-            //showLoadingDialog()
+            showLoadingDialog()
             RetrofitManager.instance.setWuHanPassWord(code)
-            RetrofitManager.instance.firstLogin()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object : Observer<ResponseBody> {
-                    override fun onSubscribe(d: Disposable) {
-                        addSubscription(d)
-                    }
-
-                    override fun onNext(body: ResponseBody) {
-                        RetrofitManager.instance.parseLoginResponseBody(body)
-                    }
-
-                    override fun onError(e: Throwable) {
-                        Log.w(TAG,"initWatch onError: ${e.message}")
-                    }
-
-                    override fun onComplete() {
-                        RetrofitManager.instance.init()
-                        showHome()
-                    }
-                })
+            firstLogin()
         }
+    }
+
+    private fun firstLogin() {
+        RetrofitManager.instance.firstLogin()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(object : Observer<ResponseBody> {
+                override fun onSubscribe(d: Disposable) {
+                    addSubscription(d)
+                }
+
+                override fun onNext(body: ResponseBody) {
+                    RetrofitManager.instance.parseLoginResponseBody(body)
+                }
+
+                override fun onError(e: Throwable) {
+                    if (loginRetryCount <= 5) {
+                        ThreadUtils.getMainHandler().postDelayed({
+                            firstLogin()
+                        }, 2000)
+                    } else {
+                        Log.e(TAG, " initWatch err count: $loginRetryCount")
+                    }
+                    loginRetryCount++
+                    Log.w(TAG,"initWatch onError: ${e.message}")
+                }
+
+                override fun onComplete() {
+                    RetrofitManager.instance.init()
+                    showHome()
+                }
+            })
     }
 
     private fun initView() {
@@ -344,6 +338,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         curTimeHandler.removeCallbacksAndMessages(null)
         dismissLoadingDialog()
         RetrofitManager.instance.getTcpClient()?.disconnect()
+        RetrofitManager.instance.onUnsubscribe()
     }
 
     fun updateFragment(type: Int, result: DealResult?) {
@@ -434,7 +429,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         }
     }
 
-    @Subscribe
+    @Subscribe(threadMode = ThreadMode.MAIN)
     fun handleEvent(bean: EventBusBean?) {
         Log.d(TAG, "MainActivity handleEvent message:" + bean!!.toString())
         when (bean.eventType) {
@@ -454,6 +449,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 dealResult.type = ConstantLogic.MSG_TYPE_HOME
                 dealResult.robotInfoList = RetrofitManager.instance.getRobotData()
                 Log.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
+                dismissLoadingDialog()
                 updateFragment(ConstantLogic.MSG_TYPE_HOME, dealResult)
                 resetTimer()
             }
