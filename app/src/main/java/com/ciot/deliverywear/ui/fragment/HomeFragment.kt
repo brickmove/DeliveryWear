@@ -122,9 +122,9 @@ class HomeFragment: BaseFragment() {
     @SuppressLint("NotifyDataSetChanged")
     override fun refreshData(isRefreshImmediately: Boolean, data: DealResult) {
         Log.w(TAG, "HomeFragment refreshData: " + GsonUtils.toJson(data))
-//        if (isDetached){
-//            return
-//        }
+        if (isDetached){
+            return
+        }
         if (mDataList.size > 0) {
             mDataList.clear()
         }

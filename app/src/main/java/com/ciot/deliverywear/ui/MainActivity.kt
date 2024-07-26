@@ -48,6 +48,8 @@ import org.greenrobot.eventbus.ThreadMode
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Timer
+import kotlin.concurrent.schedule
 
 class MainActivity : AppCompatActivity() , View.OnClickListener {
     private var mCompositeDisposable: CompositeDisposable? = null
@@ -117,6 +119,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         if (!EventBus.getDefault().isRegistered(this@MainActivity)) {
             EventBus.getDefault().register(this@MainActivity)
         }
+        refreshHome()
     }
 
     override fun onPause() {
@@ -298,7 +301,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         return super.dispatchTouchEvent(ev)
     }
 
-    private fun resetTimer() {
+    fun resetTimer() {
         // 重置计时器
         handler.removeCallbacks(standbyRunnable)
         handler.postDelayed(standbyRunnable, delayMillis)
@@ -314,6 +317,21 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         }
     }
     private val delayMillis: Long = 30000 // 30秒
+
+    private var refreshTimer: Timer? = null
+    @Volatile
+    private var isRefreshHome: Boolean = false
+    private fun refreshHome() {
+        refreshTimer = Timer()
+        refreshTimer!!.schedule(0, 1000) {
+            if (currentfragment is HomeFragment) {
+                isRefreshHome = true
+                RetrofitManager.instance.getRobotsForHome()
+            } else {
+                isRefreshHome = false
+            }
+        }
+    }
 
     private lateinit var curTimeHandler: Handler
     private lateinit var updateTimeRunnable: Runnable
@@ -335,10 +353,12 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         FragmentFactory.clearCache()
         onUnsubscribe()
         handler.removeCallbacks(standbyRunnable)
+        refreshTimer?.cancel()
         curTimeHandler.removeCallbacksAndMessages(null)
         dismissLoadingDialog()
         RetrofitManager.instance.getTcpClient()?.disconnect()
         RetrofitManager.instance.onUnsubscribe()
+        isRefreshHome = false
     }
 
     fun updateFragment(type: Int, result: DealResult?) {
@@ -451,7 +471,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 Log.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
                 dismissLoadingDialog()
                 updateFragment(ConstantLogic.MSG_TYPE_HOME, dealResult)
-                resetTimer()
+                if (!isRefreshHome) {
+                    resetTimer()
+                }
             }
         }
     }

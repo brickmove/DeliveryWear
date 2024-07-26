@@ -195,7 +195,7 @@ class RetrofitManager {
         }
         val start ="0"
         val limit ="100"
-        Log.d(TAG, "getRobotsForHome param--->token: $token, project: $project")
+        //Log.d(TAG, "getRobotsForHome param--->token: $token, project: $project")
         getWuHanApiService().findRobotByProject(token, project, start, limit)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -210,7 +210,7 @@ class RetrofitManager {
                 }
 
                 override fun onError(e: Throwable) {
-                    Log.w(TAG,"onError: ${e.message}")
+                    Log.w(TAG,"getRobotsForHome onError: ${e.message}")
                 }
 
                 override fun onComplete() {
