@@ -186,7 +186,8 @@ class RetrofitManager {
         }
     }
 
-    fun getRobotsForHome() {
+    private var getRobotsRetryCount: Int = 1
+    fun getRobotsForHome(isRefreshHome: Boolean) {
         val token = getToken()
         val project = getProject()
         if (token.isNullOrEmpty() || project.isNullOrEmpty()) {
@@ -206,11 +207,22 @@ class RetrofitManager {
 
                 override fun onNext(body: RobotAllResponse) {
                     Log.d(TAG, "RobotAllResponse: " + GsonUtils.toJson(body))
+                    body.isRefreshHome = isRefreshHome
                     parseRobotAllResponseBody(body)
                 }
 
                 override fun onError(e: Throwable) {
                     Log.w(TAG,"getRobotsForHome onError: ${e.message}")
+                    if (!isRefreshHome) {
+                        if (getRobotsRetryCount <= 20) {
+                            ThreadUtils.getMainHandler().postDelayed({
+                                getRobotsForHome(false)
+                            }, 500)
+                        } else {
+                            Log.e(TAG, " initWatch err count: $getRobotsRetryCount")
+                        }
+                        getRobotsRetryCount++
+                    }
                 }
 
                 override fun onComplete() {
@@ -221,6 +233,7 @@ class RetrofitManager {
 
     fun parseRobotAllResponseBody(body: RobotAllResponse) {
         val res: RobotAllResponse = body
+        val isRefreshHome: Boolean = res.isRefreshHome
         val total: Int? = res.total
         val robotInfo: List<RobotInfoResponse>? = res.datas
         mRobotId = mutableListOf()
@@ -228,7 +241,11 @@ class RetrofitManager {
         if (total == null || total == 0 || robotInfo.isNullOrEmpty()) {
             Log.d(TAG, "parseRobotAllResponseBody robotInfo is empty............")
             val eventBusBean = EventBusBean()
-            eventBusBean.eventType = ConstantLogic.EVENT_SHOW_HOME
+            if (isRefreshHome) {
+                eventBusBean.eventType = ConstantLogic.EVENT_REFRESH_HOME
+            } else {
+                eventBusBean.eventType = ConstantLogic.EVENT_SHOW_HOME
+            }
             EventBus.getDefault().post(eventBusBean)
             return
         }
@@ -277,7 +294,11 @@ class RetrofitManager {
                 override fun onComplete() {
                     Log.d(TAG, "parseRobotAllResponseBody robot list: " + GsonUtils.toJson(mRobotData))
                     val eventBusBean = EventBusBean()
-                    eventBusBean.eventType = ConstantLogic.EVENT_SHOW_HOME
+                    if (isRefreshHome) {
+                        eventBusBean.eventType = ConstantLogic.EVENT_REFRESH_HOME
+                    } else {
+                        eventBusBean.eventType = ConstantLogic.EVENT_SHOW_HOME
+                    }
                     EventBus.getDefault().post(eventBusBean)
                 }
             })

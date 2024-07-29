@@ -1,5 +1,11 @@
 package com.ciot.deliverywear.constant
 
+import android.os.Environment
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 interface ConstantLogic {
     companion object {
         // 日志TAG标签
@@ -23,6 +29,7 @@ interface ConstantLogic {
         // Event bus constant
         const val EVENT_ARRIVED_POINT = "EVENT_ARRIVED_POINT" // 到达点位
         const val EVENT_SHOW_HOME = "EVENT_SHOW_HOME"         // 显示首页
+        const val EVENT_REFRESH_HOME = "EVENT_REFRESH_HOME"   // 刷新首页
         const val EVENT_RECONNECT_TCP = "EVENT_RECONNECT_TCP" // 重连tcp
 
         // SharedPreferences val
@@ -30,5 +37,10 @@ interface ConstantLogic {
         const val BIND_SERVER = "BIND_SERVER"
         const val IS_BOUND = "IS_BOUND"
         const val IS_FIRST_TIME_LAUNCH = "IS_FIRST_TIME_LAUNCH"
+
+        // file constant
+        val APP_PATH: String = Environment.getExternalStorageDirectory().toString() + File.separator + "RobotLog"
+        val LOG_TODAY_FILE_NAME: String = SimpleDateFormat("MM-dd", Locale.getDefault()).format(Date())
+        val Dir_LOG_TODAY: String = APP_PATH + File.separator + LOG_TODAY_FILE_NAME
     }
 }

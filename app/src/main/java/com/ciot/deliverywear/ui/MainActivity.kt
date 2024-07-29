@@ -154,7 +154,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         }
         showLoadingDialog()
         Log.d(TAG, "MainActivity showHome >>>>>>>>>")
-        RetrofitManager.instance.getRobotsForHome()
+        RetrofitManager.instance.getRobotsForHome(false)
     }
 
     fun showNav(robotId: String) {
@@ -301,7 +301,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         return super.dispatchTouchEvent(ev)
     }
 
-    fun resetTimer() {
+    private fun resetTimer() {
         // 重置计时器
         handler.removeCallbacks(standbyRunnable)
         handler.postDelayed(standbyRunnable, delayMillis)
@@ -319,16 +319,11 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     private val delayMillis: Long = 30000 // 30秒
 
     private var refreshTimer: Timer? = null
-    @Volatile
-    private var isRefreshHome: Boolean = false
     private fun refreshHome() {
         refreshTimer = Timer()
         refreshTimer!!.schedule(0, 1000) {
             if (currentfragment is HomeFragment) {
-                isRefreshHome = true
-                RetrofitManager.instance.getRobotsForHome()
-            } else {
-                isRefreshHome = false
+                RetrofitManager.instance.getRobotsForHome(true)
             }
         }
     }
@@ -358,7 +353,6 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         dismissLoadingDialog()
         RetrofitManager.instance.getTcpClient()?.disconnect()
         RetrofitManager.instance.onUnsubscribe()
-        isRefreshHome = false
     }
 
     fun updateFragment(type: Int, result: DealResult?) {
@@ -471,9 +465,13 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 Log.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
                 dismissLoadingDialog()
                 updateFragment(ConstantLogic.MSG_TYPE_HOME, dealResult)
-                if (!isRefreshHome) {
-                    resetTimer()
-                }
+                resetTimer()
+            }
+            ConstantLogic.EVENT_REFRESH_HOME -> {
+                val dealResult = DealResult()
+                dealResult.type = ConstantLogic.MSG_TYPE_HOME
+                dealResult.robotInfoList = RetrofitManager.instance.getRobotData()
+                currentfragment?.refreshData(false, dealResult)
             }
         }
     }
