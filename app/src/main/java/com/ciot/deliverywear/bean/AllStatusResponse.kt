@@ -1,33 +1,40 @@
 package com.ciot.deliverywear.bean
 
-
 /**
  * Created by p'c on 2024/7/9.
  * Description:
  * Encoding: utf-8
  */
 class AllStatusResponse {
-    private var state: String? = null
-    private var taskstate: String? = null
-    private var batteryInfo: BatteryInfo? = null
+    private var navigation: Navigation? = null
+    inner class Navigation {
+        private var state: Int? = null
+        private var taskstate: Int? = null
+        fun getState() :Int? {
+            return state
+        }
 
-    inner class BatteryInfo {
-        private var battery: Int? = null
-
-        fun getBattery() : Int? {
-            return battery
+        fun getTaskState() :Int? {
+            return taskstate
         }
     }
 
-    fun getState(): String? {
-        return state
+    fun getNavigation(): Navigation? {
+        return navigation
     }
 
-    fun getTaskState(): String? {
-        return taskstate
+    private var taskstate: String? = null
+    private var battery: Battery? = null
+
+    inner class Battery {
+        private var capacity: Int? = null
+
+        fun getCapacity() : Int? {
+            return capacity
+        }
     }
 
-    fun getBatteryInfo(): BatteryInfo? {
-        return batteryInfo
+    fun getBattery(): Battery? {
+        return battery
     }
 }

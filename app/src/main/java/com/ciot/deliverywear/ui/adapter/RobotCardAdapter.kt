@@ -60,18 +60,18 @@ class RobotCardAdapter(
                 holder.robotStatus.visibility = View.GONE
             } else {
                 when (robotData[position].label) {
-                    "Idle" -> {
+                    "Idle Status" -> {
                         holder.robotStatus.setTextColor(ContextCompat.getColor(context, R.color.state_green))
                     }
-                    "Emergency stop" -> {
+                    "Emergency stop", "Shutdown" -> {
                         holder.robotStatus.setTextColor(ContextCompat.getColor(context, R.color.state_red))
-                        holder.robotStatus.text = "Emergency stop"
                         setCommonState(holder)
                     }
                     else -> {
                         holder.robotStatus.setTextColor(ContextCompat.getColor(context, R.color.state_orange))
                     }
                 }
+                holder.robotStatus.text = robotData[position].label
             }
         } else {
             setCommonState(holder)

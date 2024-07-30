@@ -276,9 +276,9 @@ class RetrofitManager {
                     robotData.id = info.id
                     robotData.name = info.name
                     robotData.link = info.link == true
-                    robotData.label =
-                        status.getState()?.let { it1 -> FormatUtil.formatLable(it1) }
-                    robotData.battery = status.getBatteryInfo()?.getBattery()
+                    robotData.label = status.getNavigation()?.getState()
+                        ?.let { FormatUtil.formatLable(it) }
+                    robotData.battery = status.getBattery()?.getCapacity()
                     mRobotData!!.add(robotData)
                     if (info.id.isNullOrEmpty()) {
                         mRobotId!!.add("")

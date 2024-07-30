@@ -142,7 +142,7 @@ class HomeFragment: BaseFragment() {
                 robotData.id = it.id
                 robotData.name = it.name
                 robotData.link = it.link
-                robotData.label = it.label?.let { it1 -> FormatUtil.formatLable(it1) }
+                robotData.label = it.label
                 if (it.battery == null) {
                     robotData.battery = 60
                 } else {
