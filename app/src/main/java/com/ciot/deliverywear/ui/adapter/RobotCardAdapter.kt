@@ -56,6 +56,7 @@ class RobotCardAdapter(
                 }
             })
 
+            holder.robotStatus.text = robotData[position].label
             if (robotData[position].label.isNullOrEmpty()) {
                 holder.robotStatus.visibility = View.GONE
             } else {
@@ -71,7 +72,6 @@ class RobotCardAdapter(
                         holder.robotStatus.setTextColor(ContextCompat.getColor(context, R.color.state_orange))
                     }
                 }
-                holder.robotStatus.text = robotData[position].label
             }
         } else {
             setCommonState(holder)

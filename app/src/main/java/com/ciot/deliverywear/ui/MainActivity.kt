@@ -1,5 +1,7 @@
 package com.ciot.deliverywear.ui
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,7 +12,10 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.blankj.utilcode.util.GsonUtils
 import com.blankj.utilcode.util.ThreadUtils
@@ -88,6 +93,14 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     private var currentfragment: BaseFragment? = null
     private var showingFragment: Fragment? = null
 
+    private val mRequestCode = 123
+    private val permissions = arrayOf(
+        Manifest.permission.ACCESS_WIFI_STATE,
+        Manifest.permission.CHANGE_WIFI_STATE,
+        Manifest.permission.INTERNET,
+        Manifest.permission.VIBRATE
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "MainActivity onCreate start")
         ContextUtil.setContext(this)
@@ -105,8 +118,15 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         setContentView(binding.root)
         initView()
         initData()
-        initWatch()
         getCurTime()
+        if (!checkPermissions(permissions)) {
+            ActivityCompat.requestPermissions(
+                this@MainActivity,
+                permissions,
+                mRequestCode
+            )
+        }
+        initWatch()
     }
 
     override fun onResume() {
@@ -127,6 +147,46 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         EventBus.getDefault().unregister(this@MainActivity)
         EventBus.clearCaches()
         FragmentFactory.clearCache()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 123) {
+            // 检查用户是否授予了所请求的权限
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //Log.d(TAG, "MainActivity PermissionsResult true>>>>>>>>>")
+            } else {
+                //Log.d(TAG, "MainActivity PermissionsResult false>>>>>>>>>")
+            }
+        }
+    }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                Log.d(TAG, "MainActivity PermissionsResult true>>>>>>>>>")
+            } else {
+                Log.d(TAG, "MainActivity PermissionsResult false>>>>>>>>>")
+            }
+        }
+
+    private fun checkPermissions(neededPermissions: Array<String>): Boolean {
+        if (neededPermissions.isEmpty()) {
+            return true
+        }
+        var allGranted = true
+        for (neededPermission in neededPermissions) {
+            val isGranted = ContextCompat.checkSelfPermission(ContextUtil.getContext(), neededPermission) == PackageManager.PERMISSION_GRANTED
+            if (!isGranted) {
+                requestPermissionLauncher.launch(
+                    neededPermission)
+            }
+            allGranted = allGranted and isGranted
+        }
+        Log.d(TAG, "MainActivity checkPermissions allGranted: $allGranted")
+        return allGranted
     }
 
     private fun initData() {
@@ -219,7 +279,13 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     private var loginRetryCount: Int = 1
     private fun initWatch() {
         Log.d(TAG, "initWatch start")
-        val mac = MyDeviceUtils.getMacAddress()
+        var mac = MyDeviceUtils.getMacAddress()
+        if (mac.isNullOrEmpty()) {
+            mac = "02:00:00:00:00:00"
+            Log.e(TAG, "initWatch can not get mac!")
+
+        }
+        Log.d(TAG, "initWatch mac=$mac")
         RetrofitManager.instance.setWuHanUserName(mac)
         val code = spUtils?.getInstance()?.getString(ConstantLogic.BIND_KEY)
         if (spUtils?.getInstance()?.getBoolean(ConstantLogic.IS_BOUND) == true && code != null) {
@@ -320,12 +386,17 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     private var refreshTimer: Timer? = null
     private fun refreshHome() {
+        cancelRefreshTimer()
         refreshTimer = Timer()
         refreshTimer!!.schedule(0, 1000) {
             if (currentfragment is HomeFragment) {
                 RetrofitManager.instance.getRobotsForHome(true)
             }
         }
+    }
+    private fun cancelRefreshTimer() {
+        refreshTimer?.cancel()
+        refreshTimer = null
     }
 
     private lateinit var curTimeHandler: Handler
@@ -348,7 +419,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         FragmentFactory.clearCache()
         onUnsubscribe()
         handler.removeCallbacks(standbyRunnable)
-        refreshTimer?.cancel()
+        cancelRefreshTimer()
         curTimeHandler.removeCallbacksAndMessages(null)
         dismissLoadingDialog()
         RetrofitManager.instance.getTcpClient()?.disconnect()

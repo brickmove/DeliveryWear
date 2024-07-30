@@ -1,6 +1,5 @@
 package com.ciot.deliverywear.ui.fragment
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.R
@@ -21,7 +21,7 @@ import com.ciot.deliverywear.ui.MainActivity
 import com.ciot.deliverywear.ui.adapter.RobotCardAdapter
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.custom.RobotCardDecoration
-import com.ciot.deliverywear.utils.FormatUtil
+import com.ciot.deliverywear.ui.widgets.RobotDiffCallback
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -119,9 +119,8 @@ class HomeFragment: BaseFragment() {
         })
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     override fun refreshData(isRefreshImmediately: Boolean, data: DealResult) {
-        Log.w(TAG, "HomeFragment refreshData: " + GsonUtils.toJson(data))
+        val oldList = ArrayList(mDataList)
         if (isDetached){
             return
         }
@@ -151,8 +150,10 @@ class HomeFragment: BaseFragment() {
                 mDataList.add(robotData)
             }
             Log.w(TAG, "HomeFragment mDataList: " + GsonUtils.toJson(mDataList))
-            adapter?.notifyDataSetChanged()
         }
+        val diffCallback = RobotDiffCallback(oldList, mDataList)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        adapter?.let { diffResult.dispatchUpdatesTo(it) }
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
