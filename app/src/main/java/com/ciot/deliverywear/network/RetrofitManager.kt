@@ -253,12 +253,17 @@ class RetrofitManager {
         Observable.fromIterable(robotInfo)
             .flatMap { info ->
                 val id = info.id
+                val link = info.link
                 val token = getToken()
                 if (token.isNullOrEmpty()) {
                     return@flatMap Observable.never<Pair<RobotInfoResponse, AllStatusResponse>>()
                 } else {
-                    return@flatMap getWuHanApiService().getAllStatus(id, token)
-                        .map { statusResponse -> Pair(info, statusResponse) }
+                    if (link == true) {
+                        return@flatMap getWuHanApiService().getAllStatus(id, token)
+                            .map { statusResponse -> Pair(info, statusResponse) }
+                    } else {
+                        Observable.just(Pair(info, AllStatusResponse()))
+                    }
                 }
             }
             .distinct { pair -> pair.first.id }
