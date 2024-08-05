@@ -1,8 +1,8 @@
 package com.ciot.deliverywear.network.tcp
 
-import android.util.Log
 import com.ciot.deliverywear.bean.EventBusBean
 import com.ciot.deliverywear.constant.ConstantLogic
+import com.ciot.deliverywear.utils.MyLog
 import org.greenrobot.eventbus.EventBus
 import java.io.InputStream
 import java.io.OutputStream
@@ -67,7 +67,7 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
                 }
 
             } catch (e: Exception) {
-                Log.e(TAG, "TCP connectAndRegister error: $e")
+                MyLog.e(TAG, "TCP connectAndRegister error: $e")
                 if (!isReconnecting) {
                     startReconnect() // 断网后开始重连
                 }
@@ -81,7 +81,7 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
             val hex = String.format("%02X", byte)
             hexString.append(hex).append(" ")
         }
-        Log.d(TAG, "printByteArrayAsHex: $hexString")
+        MyLog.d(TAG, "printByteArrayAsHex: $hexString")
     }
 
     fun startHeartbeat() {
@@ -100,7 +100,7 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
                     output.flush()
 
                 } catch (e: Exception) {
-                    Log.e(TAG, "TCP sendHeartbeat error: $e, isReconnecting: $isReconnecting")
+                    MyLog.e(TAG, "TCP sendHeartbeat error: $e, isReconnecting: $isReconnecting")
                     if (!isReconnecting) {
                         startReconnect() // 发送心跳失败后开始重连
                     }
@@ -129,7 +129,7 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
             output.close()
             input.close()
         } catch (e: Exception) {
-            Log.e(TAG, "TCP disconnect error: $e")
+            MyLog.e(TAG, "TCP disconnect error: $e")
         }
     }
 
@@ -139,7 +139,7 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
             output.close()
             input.close()
         } catch (e: Exception) {
-            Log.e(TAG, "TCP reconnect error: $e")
+            MyLog.e(TAG, "TCP reconnect error: $e")
         }
         //发送重连消息
         val eventBusBean = EventBusBean()

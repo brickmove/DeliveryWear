@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
-import android.util.Log
 import com.blankj.utilcode.util.GsonUtils
 import com.blankj.utilcode.util.ThreadUtils
 import com.ciot.deliverywear.bean.AllStatusResponse
@@ -23,6 +22,7 @@ import com.ciot.deliverywear.network.tcp.RetryWithDelay
 import com.ciot.deliverywear.network.tcp.TcpClient
 import com.ciot.deliverywear.network.tcp.TcpMsgListener
 import com.ciot.deliverywear.utils.FormatUtil
+import com.ciot.deliverywear.utils.MyLog
 import com.google.gson.JsonObject
 import io.reactivex.Observable
 import io.reactivex.Observer
@@ -100,7 +100,7 @@ class RetrofitManager {
     private fun getWuHanApiService(): WuhanApiService {
         if (mWuhanApiService == null) {
             val wuHanBaseUrl = getDefaultServer()
-            Log.d(TAG, "getWuHanBaseUrl=$wuHanBaseUrl")
+            MyLog.d(TAG, "getWuHanBaseUrl=$wuHanBaseUrl")
             mWuhanApiService = Retrofit.Builder()
                 .baseUrl(wuHanBaseUrl)
                 .client(getOkHttpClient(ConstantLogic.HTTP_TAG, true))
@@ -108,7 +108,7 @@ class RetrofitManager {
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build()
                 .create(WuhanApiService::class.java)
-            Log.d(TAG, "getWuHanApiService")
+            MyLog.d(TAG, "getWuHanApiService")
         }
         return mWuhanApiService!!
     }
@@ -116,7 +116,7 @@ class RetrofitManager {
     private var retryCount: Int = 0
     private var isNeedRetry: Boolean = true
     fun init() {
-        Log.d(TAG, "RetrofitManager init start...")
+        MyLog.d(TAG, "RetrofitManager init start...")
         watchAllow(getDefaultServer(), object : Observer<ResponseBody> {
             override fun onComplete() {
             }
@@ -128,14 +128,14 @@ class RetrofitManager {
 
             override fun onNext(response: ResponseBody) {
                 val allowResponse = GsonUtils.fromJson(String(response.bytes()), AllowResponse::class.java)
-                Log.d(TAG, "allowResponse: " + GsonUtils.toJson(allowResponse))
+                MyLog.d(TAG, "allowResponse: " + GsonUtils.toJson(allowResponse))
                 if (allowResponse.isSuccess()) {
                     val data: AllowResponse.DataBean? = allowResponse.getData()
                     if (data != null) {
                         data.getDomain()?.let { setTcpIp(it) }
                     }
                 } else {
-                    Log.w(TAG, "请求接入服务器失败...")
+                    MyLog.w(TAG, "请求接入服务器失败...")
                 }
                 initTcpService()
             }
@@ -147,17 +147,17 @@ class RetrofitManager {
                         init()
                     }, 3000)
                     retryCount++
-                    Log.d(TAG, "===retryCount====$retryCount")
+                    MyLog.d(TAG, "===retryCount====$retryCount")
                 } else {
-                    Log.e(TAG, "robotAllow error->${e.message}")
-                    Log.w(TAG, "请求接入服务器失败...")
+                    MyLog.e(TAG, "robotAllow error->${e.message}")
+                    MyLog.w(TAG, "请求接入服务器失败...")
                 }
             }
         })
     }
 
     fun initTcpService() {
-        Log.d(TAG, "initTcpService...")
+        MyLog.d(TAG, "initTcpService...")
         tcpClient = TcpClient.getInstance(getTcpIp(), NetConstant.TCP_SERVER_PORT)
         val listener = TcpMsgListener()
         tcpClient!!.setListener(listener)
@@ -191,12 +191,12 @@ class RetrofitManager {
         val token = getToken()
         val project = getProject()
         if (token.isNullOrEmpty() || project.isNullOrEmpty()) {
-            Log.e(TAG, "getRobotsForHome param err--->token: $token, project: $project")
+            MyLog.e(TAG, "getRobotsForHome param err--->token: $token, project: $project")
             return
         }
         val start ="0"
         val limit ="100"
-        //Log.d(TAG, "getRobotsForHome param--->token: $token, project: $project")
+        //MyLog.d(TAG, "getRobotsForHome param--->token: $token, project: $project")
         getWuHanApiService().findRobotByProject(token, project, start, limit)
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -206,20 +206,20 @@ class RetrofitManager {
                 }
 
                 override fun onNext(body: RobotAllResponse) {
-                    Log.d(TAG, "RobotAllResponse: " + GsonUtils.toJson(body))
+                    MyLog.d(TAG, "RobotAllResponse: " + GsonUtils.toJson(body))
                     body.isRefreshHome = isRefreshHome
                     parseRobotAllResponseBody(body)
                 }
 
                 override fun onError(e: Throwable) {
-                    Log.w(TAG,"getRobotsForHome onError: ${e.message}")
+                    MyLog.w(TAG,"getRobotsForHome onError: ${e.message}")
                     if (!isRefreshHome) {
                         if (getRobotsRetryCount <= 20) {
                             ThreadUtils.getMainHandler().postDelayed({
                                 getRobotsForHome(false)
                             }, 500)
                         } else {
-                            Log.e(TAG, " initWatch err count: $getRobotsRetryCount")
+                            MyLog.e(TAG, " initWatch err count: $getRobotsRetryCount")
                         }
                         getRobotsRetryCount++
                     }
@@ -239,7 +239,7 @@ class RetrofitManager {
         mRobotId = mutableListOf()
         mRobotData = mutableListOf()
         if (total == null || total == 0 || robotInfo.isNullOrEmpty()) {
-            Log.d(TAG, "parseRobotAllResponseBody robotInfo is empty............")
+            MyLog.d(TAG, "parseRobotAllResponseBody robotInfo is empty............")
             val eventBusBean = EventBusBean()
             if (isRefreshHome) {
                 eventBusBean.eventType = ConstantLogic.EVENT_REFRESH_HOME
@@ -288,11 +288,11 @@ class RetrofitManager {
                 }
 
                 override fun onError(e: Throwable) {
-                    Log.w(TAG, "parseRobotAllResponseBody onError: ${e.message}")
+                    MyLog.w(TAG, "parseRobotAllResponseBody onError: ${e.message}")
                 }
 
                 override fun onComplete() {
-                    Log.d(TAG, "parseRobotAllResponseBody robot list: " + GsonUtils.toJson(mRobotData))
+                    MyLog.d(TAG, "parseRobotAllResponseBody robot list: " + GsonUtils.toJson(mRobotData))
                     val eventBusBean = EventBusBean()
                     if (isRefreshHome) {
                         eventBusBean.eventType = ConstantLogic.EVENT_REFRESH_HOME
@@ -323,7 +323,7 @@ class RetrofitManager {
         points.map {
             it.getPositionName()?.let { it1 -> mPoints?.add(it1) }
         }
-        Log.d(TAG, "parsePointAllResponseBody point list: " + GsonUtils.toJson(mPoints))
+        MyLog.d(TAG, "parsePointAllResponseBody point list: " + GsonUtils.toJson(mPoints))
     }
 
     fun navPoint(id: String, positionName: String): Observable<ResponseBody>? {
@@ -337,12 +337,12 @@ class RetrofitManager {
 //        val nid = FormatUtil.createNid()
 //        mNidMap?.put(nid, positionName)
         jsonObject.addProperty("nid", setNidMap(positionName))
-        Log.d(TAG, "navPoint jsonObject: " + GsonUtils.toJson(jsonObject))
+        MyLog.d(TAG, "navPoint jsonObject: " + GsonUtils.toJson(jsonObject))
         val body =  RequestBody.create(
             "application/json; charset=utf-8".toMediaTypeOrNull(),
             jsonObject.toString()
         )
-        Log.d(TAG, "navPoint body: " + GsonUtils.toJson(body))
+        MyLog.d(TAG, "navPoint body: " + GsonUtils.toJson(body))
         return getWuHanApiService().singlePointNavigate(body, token)
     }
 
@@ -357,7 +357,7 @@ class RetrofitManager {
                 }
 
                 override fun onNext(body: ResponseBody) {
-                    Log.w(TAG,"重新登录success")
+                    MyLog.w(TAG,"重新登录success")
                     mReLoginFailTimes = 0
                     parseLoginResponseBody(body)
                 }
@@ -365,7 +365,7 @@ class RetrofitManager {
                 override fun onError(e: Throwable) {
                     val failTimes = mReLoginFailTimes + 1
                     mReLoginFailTimes = failTimes
-                    Log.w(TAG,"重新登录失败 $failTimes onError: ${e.message}")
+                    MyLog.w(TAG,"重新登录失败 $failTimes onError: ${e.message}")
                 }
 
                 override fun onComplete() {
@@ -405,10 +405,10 @@ class RetrofitManager {
                     hostnameVerifier { _, _ -> true }
                 }
                 // cookieJar(CookieManager())
-                Log.d(TAG, "getOkHttpClient")
+                MyLog.d(TAG, "getOkHttpClient")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "getOkHttpClient Exception：$e")
+            MyLog.e(TAG, "getOkHttpClient Exception：$e")
         }
         return builder.build()
     }
@@ -479,7 +479,7 @@ class RetrofitManager {
         // 转换成秒
         val nowTime = (System.currentTimeMillis() / 1000).toInt()
         if (nowTime - mLastReLoginTime <= intervalTime) {
-            Log.w(TAG,"Token过期，重新登录太频繁")
+            MyLog.w(TAG,"Token过期，重新登录太频繁")
             return
         }
         toLogin()
@@ -487,7 +487,7 @@ class RetrofitManager {
 
     private fun getUserRequestBody(isGetUserAndPwm: Boolean): RequestBody {
         if (initState == NetConstant.INIT_STATE_GET_IP && isGetUserAndPwm) {
-            Log.d(TAG, "login condition is get")
+            MyLog.d(TAG, "login condition is get")
         }
         //这里条件(账户名和密码)都满足后才开始登录
         initState = NetConstant.INIT_STATE_GET_USER
@@ -496,7 +496,7 @@ class RetrofitManager {
         root.put("password", getWuHanPassWord())
 
         val requestBody: RequestBody = RequestBody.create("application/json; charset=utf-8".toMediaTypeOrNull(), root.toString())
-        Log.d(TAG, "ready login wuhan Server, requestBody: " + GsonUtils.toJson(requestBody))
+        MyLog.d(TAG, "ready login wuhan Server, requestBody: " + GsonUtils.toJson(requestBody))
         return requestBody
     }
 
@@ -507,10 +507,10 @@ class RetrofitManager {
         //登录成功后拿到token
         try {
             val json = String(loginResponseBody.bytes())
-            Log.d(TAG, "requestWuHanLogin result:$json")
+            MyLog.d(TAG, "requestWuHanLogin result:$json")
             val obj = JSONObject(json).getJSONObject("data")
             token = obj.getString("token")
-            Log.d(TAG, "requestWuHanLogin token:$token")
+            MyLog.d(TAG, "requestWuHanLogin token:$token")
             projectId = obj.getString("projectId")
             val userId = obj.getString("user")
             setUserId(userId)
@@ -520,17 +520,17 @@ class RetrofitManager {
             val createTime = obj.getLong("createtime")
             setTokenInvalidTime(timeOut + createTime)
         } catch (e: Exception) {
-            Log.d(TAG, "parse WuHanLogin Exception:$e")
+            MyLog.d(TAG, "parse WuHanLogin Exception:$e")
         }
         initState = NetConstant.INIT_STATE_LONGIN_GET_TOKEN
         if (TextUtils.isEmpty(token)) {
-            Log.d(TAG, "get Token is Empty")
+            MyLog.d(TAG, "get Token is Empty")
             return false
         }
         setToken(token)
         setProject(projectId)
         setProjectName(projectName)
-        Log.w(TAG, "requestWuHanLogin getToken:${getToken()}, getProject:${getProject()}, getProjectName:${getProjectName()}")
+        MyLog.w(TAG, "requestWuHanLogin getToken:${getToken()}, getProject:${getProject()}, getProjectName:${getProjectName()}")
         return true
     }
 
@@ -569,7 +569,7 @@ class RetrofitManager {
     fun setRobotList(robotId: List<String>) {
         //设备id
         if (robotId.isNotEmpty()) {
-            Log.e(TAG, "RetrofitManager setRobotId is empty")
+            MyLog.e(TAG, "RetrofitManager setRobotId is empty")
             return
         }
         mRobotId?.addAll(robotId)

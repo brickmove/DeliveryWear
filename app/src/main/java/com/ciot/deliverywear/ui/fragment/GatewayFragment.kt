@@ -1,7 +1,6 @@
 package com.ciot.deliverywear.ui.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +12,7 @@ import com.ciot.deliverywear.constant.NetConstant
 import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.dialog.SwitchProjectDialog
+import com.ciot.deliverywear.utils.MyLog
 
 class GatewayFragment : BaseFragment(), SwitchProjectDialog.DialogListener {
     companion object {
@@ -101,7 +101,7 @@ class GatewayFragment : BaseFragment(), SwitchProjectDialog.DialogListener {
             mSwitchDialog = SwitchProjectDialog(server)
             mSwitchDialog!!.setDialogListener(this)
             mSwitchDialog?.show(childFragmentManager, "ScanSwitchProjectDialog")
-            Log.d(TAG,"showSwitchDialog>>>>>>")
+            MyLog.d(TAG,"showSwitchDialog>>>>>>")
         }
     }
     private fun dismissSwitchDialog() {

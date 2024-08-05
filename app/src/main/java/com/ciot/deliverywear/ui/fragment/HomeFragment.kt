@@ -1,7 +1,6 @@
 package com.ciot.deliverywear.ui.fragment
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +21,7 @@ import com.ciot.deliverywear.ui.adapter.RobotCardAdapter
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.custom.RobotCardDecoration
 import com.ciot.deliverywear.ui.widgets.RobotDiffCallback
+import com.ciot.deliverywear.utils.MyLog
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -76,7 +76,7 @@ class HomeFragment: BaseFragment() {
         recyclerView?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                //Log.d(TAG, "HomeFragment onScrolled: dx = $dx, dy = $dy")
+                //MyLog.d(TAG, "HomeFragment onScrolled: dx = $dx, dy = $dy")
             }
         })
         adapter?.setSummonButtonClickListener(object : RobotCardAdapter.OnSummonClickListener  {
@@ -86,7 +86,7 @@ class HomeFragment: BaseFragment() {
                     return
                 }
                 val robotId = RetrofitManager.instance.getRobotList()?.get(position)
-                Log.d(TAG, "robotId: $robotId")
+                MyLog.d(TAG, "robotId: $robotId")
                 if (!robotId.isNullOrEmpty()) {
                     onUnsubscribe()
                     RetrofitManager.instance.getNavPoint(robotId)
@@ -98,7 +98,7 @@ class HomeFragment: BaseFragment() {
                             }
 
                             override fun onNext(response: NavPointResponse) {
-                                Log.d(TAG, "NavPointResponse: " + GsonUtils.toJson(response))
+                                MyLog.d(TAG, "NavPointResponse: " + GsonUtils.toJson(response))
                                 RetrofitManager.instance.parsePointAllResponseBody(response)
                                 val dealResult = DealResult()
                                 dealResult.pointInfoList = RetrofitManager.instance.getPoints()
@@ -107,7 +107,7 @@ class HomeFragment: BaseFragment() {
                             }
 
                             override fun onError(e: Throwable) {
-                                Log.e(TAG, "点位获取失败 ：${e.message}")
+                                MyLog.e(TAG, "点位获取失败 ：${e.message}")
                             }
 
                             override fun onComplete() {
@@ -149,7 +149,7 @@ class HomeFragment: BaseFragment() {
                 }
                 mDataList.add(robotData)
             }
-            Log.w(TAG, "HomeFragment mDataList: " + GsonUtils.toJson(mDataList))
+            MyLog.w(TAG, "HomeFragment mDataList: " + GsonUtils.toJson(mDataList))
         }
         val diffCallback = RobotDiffCallback(oldList, mDataList)
         val diffResult = DiffUtil.calculateDiff(diffCallback)

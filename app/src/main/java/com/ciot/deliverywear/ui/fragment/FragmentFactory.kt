@@ -1,11 +1,11 @@
 package com.ciot.deliverywear.ui.fragment
-import android.util.Log
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import com.ciot.deliverywear.R
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.ui.base.BaseFragment
+import com.ciot.deliverywear.utils.MyLog
 
 object FragmentFactory {
     private var mCacheFragment: MutableMap<Int, BaseFragment>? = HashMap()
@@ -14,7 +14,7 @@ object FragmentFactory {
     private var tag = "FragmentFactory"
     fun createFragment(fragmentType: Int): BaseFragment {
         var fragment: BaseFragment? = null
-        Log.i(
+        MyLog.i(
             ConstantLogic.FRAGMENT,
             "createFragment:$fragmentType,last fragment is:$mCurrentFragmentType"
         )
@@ -54,7 +54,7 @@ object FragmentFactory {
     fun clearCache() {
         if (mCacheFragment != null) {
             mCacheFragment!!.clear()
-            Log.d(ConstantLogic.FRAGMENT, "Fragment clearCache")
+            MyLog.d(ConstantLogic.FRAGMENT, "Fragment clearCache")
         }
         isClearCache = true
         mCurrentFragmentType = -1
@@ -62,7 +62,7 @@ object FragmentFactory {
 
     fun release() {
         clearCache()
-        Log.d(ConstantLogic.FRAGMENT, "Fragment release")
+        MyLog.d(ConstantLogic.FRAGMENT, "Fragment release")
     }
 
     fun changeFragment(manager: FragmentManager, container: ViewGroup, newFragment: Fragment) {
@@ -85,7 +85,7 @@ object FragmentFactory {
             transaction.commitNowAllowingStateLoss()
 
         } catch (e: Exception) {
-            Log.d(tag, "changeFragment err: ", e)
+            MyLog.d(tag, "changeFragment err: $e")
         }
     }
 }

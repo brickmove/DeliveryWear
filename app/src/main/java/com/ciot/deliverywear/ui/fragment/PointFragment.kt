@@ -2,7 +2,6 @@ package com.ciot.deliverywear.ui.fragment
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,6 +18,7 @@ import com.ciot.deliverywear.ui.MainActivity
 import com.ciot.deliverywear.ui.adapter.PointCardAdapter
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.custom.PointCardDecoration
+import com.ciot.deliverywear.utils.MyLog
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -59,10 +59,10 @@ class PointFragment : BaseFragment() {
     private fun initListener() {
         summonButton?.setOnClickListener {
             val pointName = getSelectedPositionName()
-            Log.d(TAG, "click summon button, position: $pointName")
+            MyLog.d(TAG, "click summon button, position: $pointName")
             if (selectRobot?.isNotEmpty() == true && pointName?.isNotEmpty() == true) {
                 pointName.let { it1 ->
-                    Log.d(TAG, "selectRobot: $selectRobot, pointName: $pointName")
+                    MyLog.d(TAG, "selectRobot: $selectRobot, pointName: $pointName")
                     RetrofitManager.instance.navPoint(selectRobot!!, it1)
                         ?.subscribeOn(Schedulers.io())
                         ?.observeOn(AndroidSchedulers.mainThread())
@@ -74,7 +74,7 @@ class PointFragment : BaseFragment() {
                             override fun onNext(body: ResponseBody) {
 //                                val json = String(body.bytes())
 //                                val res = JSONObject(json).getJSONObject("result")
-//                                Log.d(TAG, "navigatePoint result:$res")
+//                                MyLog.d(TAG, "navigatePoint result:$res")
                                 val dealResult = DealResult()
                                 dealResult.selectPoint = it1
                                 dealResult.navInfo = "Heading To "
@@ -83,7 +83,7 @@ class PointFragment : BaseFragment() {
                             }
 
                             override fun onError(e: Throwable) {
-                                Log.w(TAG,"onError: ${e.message}")
+                                MyLog.w(TAG,"onError: ${e.message}")
                             }
 
                             override fun onComplete() {
@@ -128,7 +128,7 @@ class PointFragment : BaseFragment() {
         data.pointInfoList?.map {
             mDataList.add(it)
         }
-        Log.w(TAG, "PointFragment mDataList: " + GsonUtils.toJson(mDataList))
+        MyLog.w(TAG, "PointFragment mDataList: " + GsonUtils.toJson(mDataList))
         adapter?.notifyDataSetChanged()
     }
 

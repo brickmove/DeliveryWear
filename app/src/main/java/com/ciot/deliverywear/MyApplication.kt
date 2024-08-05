@@ -3,10 +3,10 @@ package com.ciot.deliverywear
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.util.Log
 import androidx.multidex.MultiDexApplication
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.utils.ContextUtil
+import com.ciot.deliverywear.utils.MyLog
 import java.util.LinkedList
 
 
@@ -20,7 +20,7 @@ class MyApplication : MultiDexApplication() {
             private set
     }
     override fun onCreate() {
-        Log.d(ConstantLogic.TIME_TEST, "MyApplication onCreate start")
+        MyLog.d(ConstantLogic.TIME_TEST, "MyApplication onCreate start")
         super.onCreate()
         context = this
         ContextUtil.setContext(this)

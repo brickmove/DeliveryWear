@@ -16,9 +16,9 @@
 
 package com.ciot.deliverywear.network.interceptor;
 
-import android.util.Log;
-
 import com.ciot.deliverywear.utils.JsonUtil;
+import com.ciot.deliverywear.utils.MyLog;
+
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
@@ -74,9 +74,9 @@ public class HttpLoggingInterceptor implements Interceptor {
         if (message.startsWith("<-- END HTTP") || message.startsWith("<-- HTTP FAILED")) {
             String result = sbMessage.toString();
             if (result.contains("<-- 200 OK")) {
-                Log.d(this.tag, result);
+                MyLog.d(this.tag, result);
             } else {
-                Log.e(this.tag, result);
+                MyLog.e(this.tag, result);
             }
         }
     }

@@ -1,6 +1,5 @@
 package com.ciot.deliverywear.network.tcp
 
-import android.util.Log
 import com.blankj.utilcode.util.AppUtils
 import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.bean.HeartBeatBeanR
@@ -9,6 +8,7 @@ import com.ciot.deliverywear.bean.RegisterBeanR
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.constant.NetConstant
 import com.ciot.deliverywear.network.RetrofitManager
+import com.ciot.deliverywear.utils.MyLog
 import java.util.Date
 
 /**
@@ -68,7 +68,7 @@ class TcpSendMsgUtil {
         protocolBean.seq = getSeq()
         protocolBean.cmd = NetConstant.CONTROL_DEVICE_MANAGEMENT_REGISTER
         protocolBean.body = register
-        Log.d(TAG, "发送注册平台消息: " + GsonUtils.toJson(protocolBean))
+        MyLog.d(TAG, "发送注册平台消息: " + GsonUtils.toJson(protocolBean))
         return protocolBean
     }
 
@@ -85,7 +85,7 @@ class TcpSendMsgUtil {
         protocolBean.cmd = NetConstant.CONTROL_STATUS_HEART_BEAT
         protocolBean.body = hearBeat
         if (protocolBean.seq % 10 == 0) {
-            Log.v(TAG, "sendHeartBeat: " + GsonUtils.toJson(protocolBean))
+            MyLog.v(TAG, "sendHeartBeat: " + GsonUtils.toJson(protocolBean))
         }
         return protocolBean
     }

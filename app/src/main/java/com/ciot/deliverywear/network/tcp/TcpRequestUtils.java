@@ -69,7 +69,7 @@ public class TcpRequestUtils {
         System.arraycopy(beanBytes, 11, shortbytes, 0, 2);
         short cmd = ByteUtils.bytes2short(shortbytes);
         protocolBean.setCmd(cmd);
-        //Log.d("body_tag", "cmd:"+cmd +";bytes2Bean: "+ body);
+        //MyLog.d("body_tag", "cmd:"+cmd +";bytes2Bean: "+ body);
 
         System.arraycopy(beanBytes, 9, shortbytes, 0, 2);
         short type = ByteUtils.bytes2short(shortbytes);

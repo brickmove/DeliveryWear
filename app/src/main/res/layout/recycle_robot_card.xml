@@ -60,7 +60,7 @@
 
         <TextView
             android:id="@+id/robot_battery"
-            android:layout_width="29dp"
+            android:layout_width="40dp"
             android:layout_height="17dp"
             android:layout_alignStart="@id/robot_lighting_green"
             android:layout_marginStart="16dp"

@@ -10,7 +10,6 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.text.InputFilter
 import android.text.InputType
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +24,7 @@ import com.ciot.deliverywear.network.RetrofitManager
 import com.ciot.deliverywear.ui.MainActivity
 import com.ciot.deliverywear.ui.base.BaseFragment
 import com.ciot.deliverywear.ui.dialog.BindingSuccessDialog
+import com.ciot.deliverywear.utils.MyLog
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -179,7 +179,7 @@ class BindingFragment : BaseFragment() {
                         }
 
                         override fun onError(e: Throwable) {
-                            Log.w(TAG,"登录失败 onError: ${e.message}")
+                            MyLog.w(TAG,"登录失败 onError: ${e.message}")
                             errorHint?.visibility = View.VISIBLE
                             shake?.start()
                             if (editTextView?.text?.length == 8) {
@@ -201,7 +201,7 @@ class BindingFragment : BaseFragment() {
         if (mBindingSuccessDialog?.dialog?.isShowing != true) {
             mBindingSuccessDialog = BindingSuccessDialog()
             mBindingSuccessDialog?.show(childFragmentManager, "ScanBindingSuccessDialog")
-            Log.d(TAG,"showSuccessDialog>>>>>>")
+            MyLog.d(TAG,"showSuccessDialog>>>>>>")
         }
     }
     private fun dismissSuccessDialog() {

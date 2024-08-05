@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -40,6 +39,7 @@ import com.ciot.deliverywear.ui.fragment.StandbyFragment
 import com.ciot.deliverywear.ui.fragment.WelcomeFragment
 import com.ciot.deliverywear.utils.ContextUtil
 import com.ciot.deliverywear.utils.MyDeviceUtils
+import com.ciot.deliverywear.utils.MyLog
 import com.ciot.deliverywear.utils.SPUtils
 import io.reactivex.Observer
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -78,7 +78,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     }
 
     fun setBindInfo(key: String, server: String) {
-        Log.d(TAG, "setBindInfo key: $key")
+        MyLog.d(TAG, "setBindInfo key: $key")
         spUtils?.getInstance()?.putString(ConstantLogic.BIND_KEY, key)
         spUtils?.getInstance()?.putString(ConstantLogic.BIND_SERVER, server)
         spUtils?.getInstance()?.putBoolean(ConstantLogic.IS_BOUND, true)
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        Log.d(TAG, "MainActivity onCreate start")
+        MyLog.d(TAG, "MainActivity onCreate start")
         ContextUtil.setContext(this)
         spUtils = SPUtils()
         window.setFlags(
@@ -154,9 +154,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         if (requestCode == 123) {
             // 检查用户是否授予了所请求的权限
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                //Log.d(TAG, "MainActivity PermissionsResult true>>>>>>>>>")
+                //MyLog.d(TAG, "MainActivity PermissionsResult true>>>>>>>>>")
             } else {
-                //Log.d(TAG, "MainActivity PermissionsResult false>>>>>>>>>")
+                //MyLog.d(TAG, "MainActivity PermissionsResult false>>>>>>>>>")
             }
         }
     }
@@ -166,9 +166,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             ActivityResultContracts.RequestPermission()
         ) { isGranted: Boolean ->
             if (isGranted) {
-                Log.d(TAG, "MainActivity PermissionsResult true>>>>>>>>>")
+                MyLog.d(TAG, "MainActivity PermissionsResult true>>>>>>>>>")
             } else {
-                Log.d(TAG, "MainActivity PermissionsResult false>>>>>>>>>")
+                MyLog.d(TAG, "MainActivity PermissionsResult false>>>>>>>>>")
             }
         }
 
@@ -179,13 +179,13 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         var allGranted = true
         for (neededPermission in neededPermissions) {
             val isGranted = ContextCompat.checkSelfPermission(ContextUtil.getContext(), neededPermission) == PackageManager.PERMISSION_GRANTED
-            if (!isGranted) {
-                requestPermissionLauncher.launch(
-                    neededPermission)
-            }
+//            if (!isGranted) {
+//                requestPermissionLauncher.launch(
+//                    neededPermission)
+//            }
             allGranted = allGranted and isGranted
         }
-        Log.d(TAG, "MainActivity checkPermissions allGranted: $allGranted")
+        MyLog.d(TAG, "MainActivity checkPermissions allGranted: $allGranted")
         return allGranted
     }
 
@@ -202,7 +202,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         if (currentfragment is StandbyFragment) {
             return
         }
-        Log.d(TAG, "MainActivity showStandby >>>>>>>>>")
+        MyLog.d(TAG, "MainActivity showStandby >>>>>>>>>")
         val dealResult = DealResult()
         dealResult.type = ConstantLogic.MSG_TYPE_STANDBY
         updateFragment(ConstantLogic.MSG_TYPE_STANDBY, dealResult)
@@ -213,7 +213,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             return
         }
         showLoadingDialog()
-        Log.d(TAG, "MainActivity showHome >>>>>>>>>")
+        MyLog.d(TAG, "MainActivity showHome >>>>>>>>>")
         RetrofitManager.instance.getRobotsForHome(false)
     }
 
@@ -227,7 +227,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 }
 
                 override fun onNext(response: NavPointResponse) {
-                    Log.d(TAG, "NavPointResponse: " + GsonUtils.toJson(response))
+                    MyLog.d(TAG, "NavPointResponse: " + GsonUtils.toJson(response))
                     RetrofitManager.instance.parsePointAllResponseBody(response)
                     val dealResult = DealResult()
                     dealResult.pointInfoList = RetrofitManager.instance.getPoints()
@@ -236,7 +236,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 }
 
                 override fun onError(e: Throwable) {
-                    Log.e(TAG, "点位获取失败 ：${e.message}")
+                    MyLog.e(TAG, "点位获取失败 ：${e.message}")
                 }
 
                 override fun onComplete() {
@@ -246,12 +246,12 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     }
 
     private fun showWelcome() {
-        Log.d(TAG, "MainActivity showWelcome >>>>>>>>>")
+        MyLog.d(TAG, "MainActivity showWelcome >>>>>>>>>")
         updateFragment(ConstantLogic.MSG_TYPE_WELCOME, null)
     }
 
     private fun showSetting() {
-        Log.d(TAG, "MainActivity showSetting >>>>>>>>>")
+        MyLog.d(TAG, "MainActivity showSetting >>>>>>>>>")
         updateFragment(ConstantLogic.MSG_TYPE_SETTING, null)
     }
 
@@ -261,7 +261,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         if (mLoadingDialog?.dialog?.isShowing != true) {
             mLoadingDialog = LoadingDialog()
             mLoadingDialog?.show(supportFragmentManager, "ScanLoadingDialog")
-            Log.d(TAG,"showLoadingDialog>>>>>>")
+            MyLog.d(TAG,"showLoadingDialog>>>>>>")
         }
     }
     private fun dismissLoadingDialog() {
@@ -271,25 +271,25 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     }
 
     private fun initListener() {
-        Log.d(TAG, "initListener start")
+        MyLog.d(TAG, "initListener start")
         returnView?.setOnClickListener(this)
         cancelView?.setOnClickListener(this)
     }
 
     private var loginRetryCount: Int = 1
     private fun initWatch() {
-        Log.d(TAG, "initWatch start")
+        MyLog.d(TAG, "initWatch start")
         var mac = MyDeviceUtils.getMacAddress()
         if (mac.isNullOrEmpty()) {
             mac = "02:00:00:00:00:00"
-            Log.e(TAG, "initWatch can not get mac!")
+            MyLog.e(TAG, "initWatch can not get mac!")
 
         }
-        Log.d(TAG, "initWatch mac=$mac")
+        MyLog.d(TAG, "initWatch mac=$mac")
         RetrofitManager.instance.setWuHanUserName(mac)
         val code = spUtils?.getInstance()?.getString(ConstantLogic.BIND_KEY)
         if (spUtils?.getInstance()?.getBoolean(ConstantLogic.IS_BOUND) == true && code != null) {
-            Log.d(TAG, "project code isBound, code=$code")
+            MyLog.d(TAG, "project code isBound, code=$code")
             showLoadingDialog()
             RetrofitManager.instance.setWuHanPassWord(code)
             firstLogin()
@@ -315,10 +315,10 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                             firstLogin()
                         }, 2000)
                     } else {
-                        Log.e(TAG, " initWatch err count: $loginRetryCount")
+                        MyLog.e(TAG, " initWatch err count: $loginRetryCount")
                     }
                     loginRetryCount++
-                    Log.w(TAG,"initWatch onError: ${e.message}")
+                    MyLog.w(TAG,"initWatch onError: ${e.message}")
                 }
 
                 override fun onComplete() {
@@ -329,7 +329,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
     }
 
     private fun initView() {
-        Log.d(TAG, "initView start")
+        MyLog.d(TAG, "initView start")
         timeTextView = findViewById(R.id.timeTextView)
         returnView = findViewById(R.id.return_img)
         cancelView = findViewById(R.id.cancel_img)
@@ -407,7 +407,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
             override fun run() {
                 val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
                 binding.headView.timeTextView.text = timeFormat.format(Date())
-                curTimeHandler.postDelayed(this, 60000)
+                curTimeHandler.postDelayed(this, 1000)
             }
         }
         curTimeHandler.post(updateTimeRunnable)
@@ -445,12 +445,12 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     private fun changeFragment(type: Int, newFragment: Fragment?) {
         if (newFragment == null) {
-            Log.d(TAG, "changeFragment current fragment == null")
+            MyLog.d(TAG, "changeFragment current fragment == null")
             return
         }
 
         if (newFragment == showingFragment) {
-            Log.d(TAG, "changeFragment newFragment->${newFragment.javaClass.simpleName} == showingFragment>${showingFragment?.javaClass?.simpleName}")
+            MyLog.d(TAG, "changeFragment newFragment->${newFragment.javaClass.simpleName} == showingFragment>${showingFragment?.javaClass?.simpleName}")
             return
         }
 
@@ -516,7 +516,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun handleEvent(bean: EventBusBean?) {
-        Log.d(TAG, "MainActivity handleEvent message:" + bean!!.toString())
+        MyLog.d(TAG, "MainActivity handleEvent message:" + bean!!.toString())
         when (bean.eventType) {
             ConstantLogic.EVENT_ARRIVED_POINT -> {
                 val arrivedPoint = bean.content
@@ -533,7 +533,7 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 val dealResult = DealResult()
                 dealResult.type = ConstantLogic.MSG_TYPE_HOME
                 dealResult.robotInfoList = RetrofitManager.instance.getRobotData()
-                Log.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
+                MyLog.d(TAG, "showHome dealResult: " + GsonUtils.toJson(dealResult))
                 dismissLoadingDialog()
                 updateFragment(ConstantLogic.MSG_TYPE_HOME, dealResult)
                 resetTimer()
@@ -542,7 +542,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 val dealResult = DealResult()
                 dealResult.type = ConstantLogic.MSG_TYPE_HOME
                 dealResult.robotInfoList = RetrofitManager.instance.getRobotData()
-                currentfragment?.refreshData(false, dealResult)
+                if (currentfragment is HomeFragment) {
+                    currentfragment?.refreshData(false, dealResult)
+                }
             }
         }
     }

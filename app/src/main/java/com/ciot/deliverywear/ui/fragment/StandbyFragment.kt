@@ -49,7 +49,7 @@ class StandbyFragment : BaseFragment() {
                 val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
                 timeStandby?.text = timeFormat.format(Date())
                 dateStandby?.text = dateFormat.format(Date())
-                sleepHandler.postDelayed(this, 60000L) // 每60秒更新一次时间
+                sleepHandler.postDelayed(this, 1000L) // 每1秒更新一次时间
             }
         }
         sleepHandler.post(sleepRunnable)

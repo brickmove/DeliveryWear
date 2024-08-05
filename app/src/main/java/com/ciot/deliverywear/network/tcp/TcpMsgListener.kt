@@ -1,6 +1,5 @@
 package com.ciot.deliverywear.network.tcp
 
-import android.util.Log
 import com.blankj.utilcode.util.GsonUtils
 import com.ciot.deliverywear.bean.ArrivedBean
 import com.ciot.deliverywear.bean.EventBusBean
@@ -8,6 +7,7 @@ import com.ciot.deliverywear.bean.ResultBean
 import com.ciot.deliverywear.constant.ConstantLogic
 import com.ciot.deliverywear.constant.NetConstant
 import com.ciot.deliverywear.network.RetrofitManager
+import com.ciot.deliverywear.utils.MyLog
 import org.greenrobot.eventbus.EventBus
 
 /**
@@ -21,7 +21,7 @@ class TcpMsgListener: TcpClientListener {
         // 解析并处理收到的消息
         val receive = TcpRequestUtils.bytes2Bean(message)
         if (receive.cmd != NetConstant.CONTROL_STATUS_HEART_BEAT) {
-            Log.d(TAG, "TcpMsgListener receive: " + GsonUtils.toJson(receive))
+            MyLog.d(TAG, "TcpMsgListener receive: " + GsonUtils.toJson(receive))
         }
         if (receive.cmd == NetConstant.CONTROL_DEVICE_MANAGEMENT_REGISTER) {
             val response: ResultBean = receive.body as ResultBean

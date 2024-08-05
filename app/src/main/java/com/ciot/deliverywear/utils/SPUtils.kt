@@ -2,7 +2,6 @@ package com.ciot.deliverywear.utils
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 
 // 存储绑定信息
 class SPUtils() {
@@ -36,9 +35,9 @@ class SPUtils() {
                 editor.putBoolean(key, value)
                 success = editor.commit()
                 if (success) {
-                    Log.d(TAG, "Set bool value to $value successfully")
+                    MyLog.d(TAG, "Set bool value to $value successfully")
                 } else {
-                    Log.d(TAG, "Failed to set bool value to $value. Attempt ${attempts + 1} of $MAX_RETRIES")
+                    MyLog.d(TAG, "Failed to set bool value to $value. Attempt ${attempts + 1} of $MAX_RETRIES")
                 }
                 attempts++
             }
@@ -68,9 +67,9 @@ class SPUtils() {
                 editor.putString(key, value)
                 success = editor.commit()
                 if (success) {
-                    Log.d(TAG, "Set string value to $value successfully")
+                    MyLog.d(TAG, "Set string value to $value successfully")
                 } else {
-                    Log.d(TAG, "Failed to set string value to $value. Attempt ${attempts + 1} of $MAX_RETRIES")
+                    MyLog.d(TAG, "Failed to set string value to $value. Attempt ${attempts + 1} of $MAX_RETRIES")
                 }
                 attempts++
             }
@@ -100,9 +99,9 @@ class SPUtils() {
                 editor.putInt(key, value)
                 success = editor.commit()
                 if (success) {
-                    Log.d(TAG, "Set int value to $value successfully")
+                    MyLog.d(TAG, "Set int value to $value successfully")
                 } else {
-                    Log.d(TAG, "Failed to set int value to $value. Attempt ${attempts + 1} of $MAX_RETRIES")
+                    MyLog.d(TAG, "Failed to set int value to $value. Attempt ${attempts + 1} of $MAX_RETRIES")
                 }
                 attempts++
             }

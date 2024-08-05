@@ -8,7 +8,6 @@ import static android.content.Context.WIFI_SERVICE;
 import android.annotation.SuppressLint;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.util.Log;
 
 import androidx.annotation.RequiresPermission;
 
@@ -79,22 +78,22 @@ public final class MyDeviceUtils {
     @RequiresPermission(allOf = {ACCESS_WIFI_STATE, INTERNET})
     public static String getMacAddress(final String... excepts) {
         String macAddress = getMacAddressByNetworkInterface();
-        Log.d("getMacAddress", "getMacAddressByNetworkInterface-> " + macAddress);
+        MyLog.d("getMacAddress", "getMacAddressByNetworkInterface-> " + macAddress);
         if (isAddressNotInExcepts(macAddress, excepts)) {
             return macAddress;
         }
         macAddress = getMacAddressByInetAddress();
-        Log.d("getMacAddress", "getMacAddressByInetAddress-> " + macAddress);
+        MyLog.d("getMacAddress", "getMacAddressByInetAddress-> " + macAddress);
         if (isAddressNotInExcepts(macAddress, excepts)) {
             return macAddress;
         }
         macAddress = getMacAddressByWifiInfo();
-        Log.d("getMacAddress", "getMacAddressByWifiInfo-> " + macAddress);
+        MyLog.d("getMacAddress", "getMacAddressByWifiInfo-> " + macAddress);
         if (isAddressNotInExcepts(macAddress, excepts)) {
             return macAddress;
         }
         macAddress = getMacAddressByFile();
-        Log.d("getMacAddress", "getMacAddressByFile-> " + macAddress);
+        MyLog.d("getMacAddress", "getMacAddressByFile-> " + macAddress);
         if (isAddressNotInExcepts(macAddress, excepts)) {
             return macAddress;
         }
