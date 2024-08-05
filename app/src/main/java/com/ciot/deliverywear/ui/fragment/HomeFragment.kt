@@ -81,7 +81,7 @@ class HomeFragment: BaseFragment() {
         })
         adapter?.setSummonButtonClickListener(object : RobotCardAdapter.OnSummonClickListener  {
             override fun onSummonClick(position: Int) {
-                if (position <= RecyclerView.NO_POSITION) {
+                if (position <= RecyclerView.NO_POSITION || RetrofitManager.instance.getRobotList()?.size == 0) {
                     //防止异常
                     return
                 }
