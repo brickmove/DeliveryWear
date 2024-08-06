@@ -257,16 +257,31 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
 
     // 加载动画弹窗
     private var mLoadingDialog: LoadingDialog? = null
+    private var dismissLoadingRunnable: Runnable? = null
+    private var dismissLoadingDelay = 5000L // 5s后未完成加载就取消加载动画
     private fun showLoadingDialog() {
         if (mLoadingDialog?.dialog?.isShowing != true) {
             mLoadingDialog = LoadingDialog()
             mLoadingDialog?.show(supportFragmentManager, "ScanLoadingDialog")
             MyLog.d(TAG,"showLoadingDialog>>>>>>")
+
+            dismissLoadingRunnable = Runnable {
+                dismissLoadingDialog()
+            }
+            handler.postDelayed(dismissLoadingRunnable!!, dismissLoadingDelay)
         }
     }
     private fun dismissLoadingDialog() {
         if (mLoadingDialog?.dialog?.isShowing == true) {
             mLoadingDialog?.dismiss()
+        }
+        cancelDismissLoading()
+    }
+
+    private fun cancelDismissLoading() {
+        dismissLoadingRunnable?.let {
+            handler.removeCallbacks(it)
+            dismissLoadingRunnable = null
         }
     }
 
