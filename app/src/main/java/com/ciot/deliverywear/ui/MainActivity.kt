@@ -126,6 +126,9 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
                 mRequestCode
             )
         }
+        if (!EventBus.getDefault().isRegistered(this@MainActivity)) {
+            EventBus.getDefault().register(this@MainActivity)
+        }
         initWatch()
     }
 
@@ -134,10 +137,6 @@ class MainActivity : AppCompatActivity() , View.OnClickListener {
         initListener()
         if (spUtils?.getInstance()?.getBoolean(ConstantLogic.IS_FIRST_TIME_LAUNCH, true) == true) {
             showWelcome()
-        }
-
-        if (!EventBus.getDefault().isRegistered(this@MainActivity)) {
-            EventBus.getDefault().register(this@MainActivity)
         }
         refreshHome()
     }
