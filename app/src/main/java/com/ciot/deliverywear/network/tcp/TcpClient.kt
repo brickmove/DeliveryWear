@@ -28,7 +28,8 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
     private var hearBeatInterval = 1000L
     private var isReconnecting = false
     private var listener: TcpClientListener? = null
-
+    private val bufferSize = 1024
+    private val buffer = ByteArray(bufferSize)
     companion object {
         @Volatile
         private var instance: TcpClient? = null
@@ -58,12 +59,10 @@ class TcpClient(private val serverIp: String, private val serverPort: Int) {
                 output?.flush()
                 // 开始循环接收消息
                 while (true) {
-                    val bufferSize = 1024
-                    val buffer = ByteArray(bufferSize)
                     val bytesRead = input?.read(buffer)
                     val message = bytesRead?.let { buffer.copyOfRange(0, it) }
-                    //printByteArrayAsHex(message)
                     if (message != null) {
+                        //printByteArrayAsHex(message)
                         listener?.onMessageReceived(message)
                     }
                 }

@@ -1,8 +1,10 @@
 package com.ciot.deliverywear.network.tcp;
 
 import com.ciot.deliverywear.bean.ProtocolBean;
+import com.ciot.deliverywear.constant.NetConstant;
 import com.ciot.deliverywear.utils.ByteUtils;
 import com.ciot.deliverywear.utils.GsonUtils;
+import com.ciot.deliverywear.utils.MyLog;
 
 public class TcpRequestUtils {
     /**
@@ -58,18 +60,30 @@ public class TcpRequestUtils {
         byte[] bytes = new byte[4];
         byte[] shortbytes = new byte[2];
 
-        System.arraycopy(beanBytes, 19, bytes, 0, 4);
-        int length = ByteUtils.bytes2int(bytes);
-        protocolBean.setLen(length);
-
-        byte[] bodyBytes = new byte[length];
-        System.arraycopy(beanBytes, 23, bodyBytes, 0, length);
-        String body = new String(bodyBytes);
-
         System.arraycopy(beanBytes, 11, shortbytes, 0, 2);
         short cmd = ByteUtils.bytes2short(shortbytes);
         protocolBean.setCmd(cmd);
-        //MyLog.d("body_tag", "cmd:"+cmd +";bytes2Bean: "+ body);
+        //MyLog.d("body_tag", "cmd:"+cmd);
+        // 心跳包应答不解析
+        if (cmd == NetConstant.CONTROL_STATUS_HEART_BEAT) {
+            return protocolBean;
+        }
+
+        System.arraycopy(beanBytes, 19, bytes, 0, 4);
+        int length = ByteUtils.bytes2int(bytes);
+        //MyLog.d("body_tag", "length: " + length);
+        protocolBean.setLen(length);
+
+        // 检查 length 的值是否合理
+        final int MAX_BODY_LENGTH = 1024 * 1024;
+        if (length > MAX_BODY_LENGTH) {
+            MyLog.e("body_tag", "body length out of memory!!!, length = " + length);
+            return protocolBean;
+        }
+        byte[] bodyBytes = new byte[length];
+        System.arraycopy(beanBytes, 23, bodyBytes, 0, length);
+        String body = new String(bodyBytes);
+        //MyLog.d("body_tag", bytes2Bean: "+ body);
 
         System.arraycopy(beanBytes, 9, shortbytes, 0, 2);
         short type = ByteUtils.bytes2short(shortbytes);
