@@ -11,14 +11,14 @@ class FormatUtil {
             var newLable = ""
             newLable = when (lable) {
                 // 空闲
-                -1 -> "Idle Status"
+                -1,8 -> "Idle Status"
                 // 任务中
-                0,1,3,4,8 -> "Task in Progress"
+                0,1,3,4 -> "Task in Progress"
                 // 任务异常
                 2,5,6,7 -> "Task Abnormal"
                 // 任务暂停
                 9 -> "Task Pausing"
-                else -> "Other"
+                else -> "Others"
             }
             return newLable
         }

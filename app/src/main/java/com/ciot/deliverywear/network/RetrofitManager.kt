@@ -133,11 +133,11 @@ class RetrofitManager {
                     val data: AllowResponse.DataBean? = allowResponse.getData()
                     if (data != null) {
                         data.getDomain()?.let { setTcpIp(it) }
+                        initTcpService()
                     }
                 } else {
                     MyLog.w(TAG, "请求接入服务器失败...")
                 }
-                initTcpService()
             }
 
             override fun onError(e: Throwable) {
